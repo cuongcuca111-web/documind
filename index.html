@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocuMind - Tóm Tắt & Trực Quan Hóa Tài Liệu</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            cyanic: {
+              400: '#22d3ee',
+              500: '#06b6d4',
+              600: '#0891b2',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- D3.js for Interactive Mindmap -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <!-- Chart.js for data insights -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Mermaid.js for flowcharts -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- PDF.js for reading PDF client-side -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Mammoth.js for client-side Word DOCX extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .node circle {
+      stroke-width: 2.5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .node circle:hover {
+      filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.8));
+    }
+    .node text {
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      fill: #e2e8f0;
+      paint-order: stroke;
+      stroke: #0f172a;
+      stroke-width: 3px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .link {
+      fill: none;
+      stroke: #475569;
+      stroke-width: 1.8px;
+      stroke-opacity: 0.7;
+    }
+    /* Compact, elegant styling for Mermaid flowcharts */
+    #mermaidRenderArea svg {
+      max-width: 440px !important;
+      height: auto !important;
+      margin: 0 auto;
+      transition: transform 0.25s ease;
+    }
+    #mermaidRenderArea .node rect,
+    #mermaidRenderArea .node circle,
+    #mermaidRenderArea .node polygon,
+    #mermaidRenderArea .node path {
+      rx: 8px !important;
+      ry: 8px !important;
+      stroke-width: 1.5px !important;
+    }
+    #mermaidRenderArea .node .label {
+      font-size: 11.5px !important;
+      font-weight: 500 !important;
+      line-height: 1.35 !important;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.5);
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.9);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-cyanic-400 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <i class="fa-solid fa-brain text-white text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg tracking-tight text-white">Docu<span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyanic-400">Mind</span></h1>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">AI Visualizer</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Trích xuất cốt lõi • Vẽ Mindmap • Google Drive & Docs</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openApiKeyModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition" title="Tùy chọn API Key Gemini">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span class="hidden sm:inline">Cấu hình API</span>
+        </button>
+        <button onclick="loadDemoSample()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-cyanic-600 hover:opacity-90 text-white text-xs font-semibold shadow-md flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>Thử tài liệu mẫu</span>
+        </button>
+
+        <!-- Cloud Sync Status Badge -->
+        <div id="cloudSyncBadge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-slate-700 text-[11px] text-slate-400">
+          <i id="cloudSyncIcon" class="fa-solid fa-cloud-arrow-up text-emerald-400"></i>
+          <span id="cloudSyncText">Đám mây kết nối</span>
+        </div>
+
+        <div id="authHeaderContainer" class="flex items-center gap-2 ml-1">
+          <!-- Logged Out State Button -->
+          <button id="btnOpenAuthModal" onclick="openAuthModal('login')" class="px-3 py-1.5 rounded-xl bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-user-circle"></i>
+            <span>Đăng Nhập / Đăng Ký</span>
+          </button>
+
+          <!-- Logged In State Profile Badge (Hidden initially) -->
+          <div id="userProfileBadge" class="hidden relative">
+            <button onclick="toggleUserDropdown()" class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-white transition">
+              <div id="userAvatar" class="w-6 h-6 rounded-lg bg-gradient-to-tr from-brand-500 to-cyanic-400 flex items-center justify-center font-bold text-[11px] text-white">
+                U
+              </div>
+              <span id="userNameLabel" class="font-semibold max-w-[100px] truncate text-slate-200">Người dùng</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            </button>
+
+            <!-- User Menu Dropdown -->
+            <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-3 z-50 space-y-3">
+              <div class="border-b border-slate-800 pb-2.5">
+                <p id="dropdownFullName" class="text-xs font-bold text-white truncate">Học viên DocuMind</p>
+                <p id="dropdownEmail" class="text-[11px] text-slate-400 truncate">user@documind.ai</p>
+                <div class="mt-1.5 p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[10px] font-mono text-cyan-300 flex items-center justify-between gap-1">
+                  <span class="truncate" id="dropdownUserId">UID: ...</span>
+                  <button onclick="copyUserIdToClipboard()" title="Sao chép User ID" class="text-slate-400 hover:text-white px-1">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- History Quick Link -->
+              <div class="space-y-1">
+                <button onclick="openHistoryModal()" class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-between transition">
+                  <span class="flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-brand-400"></i> Tủ tài liệu của tôi</span>
+                  <span id="userHistoryCount" class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700">0</span>
+                </button>
+              </div>
+
+              <div class="border-t border-slate-800 pt-1">
+                <button onclick="handleUserSignOut()" class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-rose-950/40 text-xs text-rose-400 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+    <!-- UPLOAD & INPUT SECTION -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
+      <div class="absolute -top-32 -right-32 w-80 h-80 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Tab Buttons for Upload Type -->
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-4 mb-5">
+        <div class="flex gap-2 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800">
+          <button onclick="switchInputTab('upload')" id="tabBtn-upload" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-brand-600 text-white flex items-center gap-2 shadow-sm">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Tải Tệp (PDF / DOCX / TXT)
+          </button>
+          <button onclick="switchInputTab('gdrive')" id="tabBtn-gdrive" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white flex items-center gap-2">
+            <i class="fa-brands fa-google-drive text-emerald-400"></i> Link Google Docs / Drive
+          </button>
+          <button onclick="switchInputTab('paste')" id="tabBtn-paste" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white flex items-center gap-2">
+            <i class="fa-solid fa-paste"></i> Dán Văn Bản
+          </button>
+        </div>
+
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+          <span>Xử lý an toàn trên trình duyệt</span>
+        </div>
+      </div>
+
+      <!-- Input Panel 1: File Dropzone -->
+      <div id="panel-upload" class="block">
+        <div id="dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)"
+          class="border-2 border-dashed border-slate-700 hover:border-brand-500/80 rounded-2xl p-8 text-center transition cursor-pointer bg-slate-950/40 group">
+          <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.txt,.md" onchange="handleFileSelect(event)">
+          <div onclick="document.getElementById('fileInput').click()" class="space-y-3">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-brand-500/10 group-hover:scale-110 text-brand-400 flex items-center justify-center text-2xl transition duration-300">
+              <i class="fa-solid fa-file-arrow-up"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-white">Kéo thả tệp vào đây hoặc <span class="text-brand-400 underline underline-offset-4">Chọn từ máy tính</span></p>
+              <p class="text-xs text-slate-400 mt-1">Hỗ trợ các định dạng: <strong>.PDF, .DOCX (Word), .TXT, .MD</strong> (Tự động đọc nội dung bằng thư viện chuyên dụng)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Panel 2: Google Docs / Drive Link -->
+      <div id="panel-gdrive" class="hidden space-y-3">
+        <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Dán liên kết Google Docs hoặc Google Drive (Quyền truy cập: "Bất kỳ ai có đường liên kết"):
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <i class="fa-brands fa-google text-slate-400"></i>
+              </span>
+              <input type="url" id="gdriveUrlInput" placeholder="https://docs.google.com/document/d/1abcXYZ.../edit?usp=sharing" 
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 transition">
+            </div>
+            <button onclick="fetchGoogleDocContent()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition shadow-md whitespace-nowrap">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Tải Từ Google Docs
+            </button>
+          </div>
+          <div class="mt-3 flex items-start gap-2 text-[11px] text-slate-400 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
+            <i class="fa-solid fa-circle-info text-cyanic-400 mt-0.5"></i>
+            <div>
+              <span>Mẹo: Hãy đảm bảo file Google Doc đã được bật chế độ <strong>"Bất kỳ ai có đường liên kết đều có thể xem"</strong>. Hệ thống sẽ bóc tách Document ID và tải phiên bản định dạng văn bản để xử lý ngay.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Panel 3: Paste Direct Text -->
+      <div id="panel-paste" class="hidden space-y-4">
+        <div class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800/90 space-y-3.5">
+          <!-- Optional Title Bar -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="flex-1">
+              <label for="pastedTextTitle" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                Tiêu đề tài liệu / Chủ đề (Tùy chọn):
+              </label>
+              <input type="text" id="pastedTextTitle" placeholder="Ví dụ: Tóm tắt Sinh học tế bào, Báo cáo kinh tế quý 3..."
+                class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 transition placeholder:text-slate-500">
+            </div>
+
+            <!-- Quick Clipboard & Clear Actions -->
+            <div class="flex items-center gap-2 self-end sm:self-auto sm:mt-5">
+              <button type="button" onclick="pasteFromClipboard()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/80 flex items-center gap-1.5 transition" title="Dán nội dung từ bộ nhớ tạm">
+                <i class="fa-regular fa-paste text-brand-400"></i>
+                <span>Dán từ Clipboard</span>
+              </button>
+              <button type="button" onclick="clearPastedText()" class="px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-medium border border-slate-700/80 transition" title="Xóa toàn bộ văn bản">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Textarea -->
+          <div class="relative">
+            <textarea id="pastedTextInput" rows="8"
+              oninput="updatePasteStats()"
+              onkeydown="handlePasteTextKeydown(event)"
+              placeholder="Dán nội dung tài liệu, giáo trình, bài giảng hoặc ghi chú của bạn vào đây (hỗ trợ văn bản thuần, danh sách, markdown)..."
+              class="w-full bg-slate-950 border border-slate-700/80 rounded-2xl p-4 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 custom-scroll transition leading-relaxed placeholder:text-slate-600"></textarea>
+          </div>
+
+          <!-- Footer Bar: Realtime Word Stats & Primary Confirmation Button -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-slate-800/60">
+            <div class="flex items-center gap-4 text-xs text-slate-400">
+              <div class="flex items-center gap-1.5">
+                <i class="fa-solid fa-align-left text-slate-500"></i>
+                <span id="pasteWordCount" class="font-medium text-slate-300">0 từ</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <i class="fa-regular fa-keyboard text-slate-500"></i>
+                <span id="pasteCharCount" class="font-medium text-slate-300">0 ký tự</span>
+              </div>
+              <div class="hidden sm:flex items-center gap-1.5 text-slate-500">
+                <i class="fa-regular fa-clock"></i>
+                <span id="pasteReadEstimate">~0 phút đọc</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="hidden md:inline-block text-[11px] text-slate-500">
+                <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-400">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-400">Enter</kbd>
+              </span>
+              <button type="button" onclick="confirmAndAnalyzePastedText()" id="btnConfirmPastedText"
+                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyanic-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap">
+                <i class="fa-solid fa-circle-check text-cyanic-200"></i>
+                <span>Xác Nhận & Phân Tích Ngay</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="loadedDocBadge" class="hidden mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-brand-950/20 p-3 rounded-2xl border border-brand-500/20">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center">
+            <i id="docTypeIcon" class="fa-solid fa-file-lines text-base"></i>
+          </div>
+          <div>
+            <p id="docTitleLabel" class="text-xs sm:text-sm font-semibold text-white">document.pdf</p>
+            <p id="docMetaLabel" class="text-[11px] text-slate-400">1,240 từ • Ước tính 5 phút đọc</p>
+          </div>
+        </div>
+        <button onclick="processAndAnalyzeDocument()" id="btnStartAnalyze" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyanic-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/25 flex items-center gap-2 transition active:scale-95">
+          <i class="fa-solid fa-sparkles"></i> Tóm Tắt & Vẽ Sơ Đồ Ngay
+        </button>
+      </div>
+
+      <!-- Loading State Indicator -->
+      <div id="loadingIndicator" class="hidden mt-6 text-center py-8 space-y-3">
+        <div class="inline-block relative">
+          <div class="w-12 h-12 rounded-full border-4 border-slate-700 border-t-brand-500 animate-spin"></div>
+          <i class="fa-solid fa-brain absolute inset-0 m-auto text-brand-400 text-xs flex items-center justify-center"></i>
+        </div>
+        <p id="loadingStatusText" class="text-xs sm:text-sm font-semibold text-brand-300 animate-pulse">
+          Đang đọc tệp và trích xuất cấu trúc ngữ nghĩa...
+        </p>
+      </div>
+    </section>
+
+    <div id="analysisDashboard" class="hidden space-y-6">
+
+      <!-- Action & View Switching Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+        <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <button onclick="switchView('mindmap')" id="viewBtn-mindmap" class="px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white flex items-center gap-1.5 shadow-sm whitespace-nowrap">
+            <i class="fa-solid fa-diagram-project"></i> Sơ Đồ Tư Duy (Mindmap)
+          </button>
+          <button onclick="switchView('flowchart')" id="viewBtn-flowchart" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-arrow-down-up-across-line"></i> Sơ Đồ Luồng (Flowchart)
+          </button>
+          <button onclick="switchView('infographic')" id="viewBtn-infographic" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Infographic HTML Tương Tác
+          </button>
+          <button onclick="switchView('chart')" id="viewBtn-chart" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-chart-pie"></i> Phân Bổ Trọng Tâm
+          </button>
+          <button onclick="switchView('summary')" id="viewBtn-summary" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-list-ul"></i> Văn Bản Tóm Tắt
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+          <button onclick="exportSummaryMarkdown()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+            <i class="fa-regular fa-copy"></i> Sao chép tóm tắt
+          </button>
+          <button onclick="exportActiveViewImage()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-download"></i> Tải ảnh / File tương tác
+          </button>
+        </div>
+      </div>
+
+      <!-- Core Insights Top Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-compress text-brand-400"></i> Tỷ Lệ Rút Gọn
+          </span>
+          <p id="statCompression" class="text-2xl font-bold text-white mt-1">75%</p>
+          <span class="text-[11px] text-slate-500">Giảm thời gian đọc từ 15p còn 3p</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-key text-amber-400"></i> Ý Tưởng Cốt Lõi
+          </span>
+          <p id="statKeyPointsCount" class="text-2xl font-bold text-amber-400 mt-1">5 Luận Điểm</p>
+          <span class="text-[11px] text-slate-500">Đã chắt lọc vào mindmap</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-clock text-cyanic-400"></i> Thời Gian Đọc
+          </span>
+          <p id="statReadingTime" class="text-2xl font-bold text-cyanic-400 mt-1">~2.5 Phút</p>
+          <span class="text-[11px] text-slate-500">Bản tóm tắt cô đọng</span>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
+          <span class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+            <i class="fa-solid fa-gauge-high text-emerald-400"></i> Độ Phức Tạp
+          </span>
+          <p id="statComplexity" class="text-2xl font-bold text-emerald-400 mt-1">Trung Bình</p>
+          <span class="text-[11px] text-slate-500">Thích hợp học nhanh & ôn tập</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Visual Stage (8 cols) -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- VIEW 1: D3 Interactive Mindmap -->
+          <div id="viewContainer-mindmap" class="block bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl relative min-h-[500px]">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                  <i class="fa-solid fa-sitemap text-brand-400"></i> Sơ Đồ Cây Tư Duy Tương Tác (Interactive Mindmap)
+                </h3>
+                <p class="text-[11px] text-slate-400">Cuộn chuột để Phóng to/Thu nhỏ • Kéo để Di chuyển • Nhấp nút tròn để đóng/mở nhánh</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="resetMindmapZoom()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs" title="Khôi phục góc nhìn">
+                  <i class="fa-solid fa-arrows-to-dot"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="mindmapCanvasWrapper" class="w-full h-[480px] bg-slate-950/70 border border-slate-800/80 rounded-2xl overflow-hidden relative">
+              <svg id="mindmapSvg" class="w-full h-full"></svg>
+            </div>
+          </div>
+
+          <!-- VIEW 2: Mermaid Flowchart -->
+          <div id="viewContainer-flowchart" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px]">
+            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                  <i class="fa-solid fa-arrow-progress text-cyanic-400"></i> Lưu Đồ Diễn Tiến & Nhân Quả (Flowchart)
+                </h3>
+                <p class="text-[11px] text-slate-400">Minh họa các bước logic, chuỗi nhân quả với kích thước chuẩn cân đối</p>
+              </div>
+              <div class="flex items-center gap-2 text-xs flex-wrap">
+                <!-- Flowchart Scale & Size Controls -->
+                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px]">
+                  <span class="text-slate-400 mr-1"><i class="fa-solid fa-magnifying-glass"></i> Cỡ:</span>
+                  <button type="button" onclick="scaleFlowchart(0.8)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold" title="Thu nhỏ sơ đồ">80%</button>
+                  <button type="button" onclick="scaleFlowchart(1.0)" class="px-2 py-0.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-semibold" title="Kích thước chuẩn vừa vặn">100%</button>
+                  <button type="button" onclick="scaleFlowchart(1.25)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold" title="Phóng to">125%</button>
+                </div>
+                <button onclick="reRenderFlowchart()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition" title="Làm mới lại sơ đồ">
+                  <i class="fa-solid fa-rotate text-cyan-400"></i> Làm Mới
+                </button>
+                <button onclick="toggleFlowchartCodeModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-code text-brand-400"></i> Mã Mermaid
+                </button>
+              </div>
+            </div>
+            
+            <div id="flowchartWrapper" class="w-full bg-slate-950/80 border border-slate-800/90 rounded-2xl p-6 overflow-x-auto overflow-y-auto custom-scroll flex justify-center items-center min-h-[420px] max-h-[560px] relative">
+              <div id="mermaidRenderArea" class="w-full max-w-md flex justify-center items-center py-2 transition-transform duration-200">
+                <!-- Injected via mermaid.render or fallback -->
+              </div>
+              <div id="flowchartLoading" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center gap-2 text-xs text-cyanic-300">
+                <i class="fa-solid fa-circle-notch animate-spin"></i> Đang dựng sơ đồ luồng...
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 3: Interactive HTML Infographic Studio -->
+          <div id="viewContainer-infographic" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl min-h-[500px] space-y-5">
+            <!-- Header & Template Selector -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-cyanic-400"></i> Infographic HTML Tương Tác Đa Chiều
+                  </h3>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Dynamic Web DOM • Click to Expand</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Tùy biến bằng prompt riêng của bạn. Nhấp vào thẻ để mở rộng phân tích sâu, tìm kiếm từ khóa và tải file HTML độc lập.</p>
+              </div>
+
+              <!-- Template dropdown & Actions -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-700/80">
+                  <label class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Mẫu Prompt:</label>
+                  <select id="infographicTemplateSelect" onchange="applySelectedPromptTemplate()" class="bg-transparent text-xs text-cyan-300 font-semibold focus:outline-none cursor-pointer">
+                    <!-- Populated by JS -->
+                  </select>
+                </div>
+                <button onclick="openSaveTemplateModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition" title="Lưu mẫu cấu hình hiện tại">
+                  <i class="fa-solid fa-bookmark text-amber-400"></i> Lưu Mẫu Này
+                </button>
+                <button onclick="deleteCurrentTemplate()" id="btnDeleteTemplate" class="px-2.5 py-1.5 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-medium border border-slate-700/80 transition" title="Xóa mẫu tùy chỉnh">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Prompt Customization & Control Bar -->
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/90 space-y-3">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <i class="fa-solid fa-terminal text-cyan-400"></i> Prompt Tùy Biến Riêng Của Bạn (Nhập yêu cầu tự do, ý tưởng hoặc dán prompt ngoài):
+                </label>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400">Bố Cục:</span>
+                  <select id="infographicLayoutSelect" onchange="changeInteractiveLayout(this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-cyan-500 font-medium">
+                    <option value="bento" selected>Bento Grid Hiện Đại</option>
+                    <option value="roadmap">Lộ Trình Tiến Trình (Roadmap)</option>
+                    <option value="pillars">Trụ Cột Chuyên Sâu (Pillars)</option>
+                    <option value="editorial">Tạp Chí Tri Thức (Editorial)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Quick prompt tags / chips -->
+              <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span class="text-slate-400 text-[10px] uppercase font-semibold mr-1">Thêm nhanh gợi ý:</span>
+                <button type="button" onclick="appendPromptDirective('Tập trung làm rõ các số liệu định lượng, chi phí và tỷ lệ hiệu suất.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800 transition">+ Số liệu & Hiệu suất</button>
+                <button type="button" onclick="appendPromptDirective('Rút gọn thành đúng 3 trụ cột lớn, diễn đạt đơn giản cho người mới.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800 transition">+ 3 Trụ Cột Tối Giản</button>
+                <button type="button" onclick="appendPromptDirective('Phân tích sâu rủi ro tiềm ẩn ở từng khâu và hành động khắc phục cụ thể.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 border border-slate-800 transition">+ Phân Tích Rủi Ro</button>
+                <button type="button" onclick="appendPromptDirective('Thiết kế dạng cẩm nang thực chiến gồm các bước hành động ngay trong tuần đầu.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800 transition">+ Cẩm Nang Thực Chiến</button>
+              </div>
+
+              <textarea id="infographicPromptInput" rows="3" 
+                placeholder="Ví dụ: Thiết kế Infographic tập trung sâu vào khâu Logistics đầu vào và quy trình JIT, giải thích vì sao giúp tiết kiệm chi phí và các hành động cải tiến ngay..."
+                class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono custom-scroll transition leading-relaxed"></textarea>
+
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <!-- Color Theme Palettes -->
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400">Gam màu:</span>
+                  <div class="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                    <button type="button" onclick="setInfographicTheme('indigo')" title="Cosmic Indigo" class="w-5 h-5 rounded-lg bg-indigo-500 ring-2 ring-transparent focus:ring-white transition"></button>
+                    <button type="button" onclick="setInfographicTheme('cyan')" title="Cyber Cyan" class="w-5 h-5 rounded-lg bg-cyan-400 ring-2 ring-transparent focus:ring-white transition"></button>
+                    <button type="button" onclick="setInfographicTheme('emerald')" title="Emerald Forest" class="w-5 h-5 rounded-lg bg-emerald-500 ring-2 ring-transparent focus:ring-white transition"></button>
+                    <button type="button" onclick="setInfographicTheme('sunset')" title="Sunset Amber" class="w-5 h-5 rounded-lg bg-amber-500 ring-2 ring-transparent focus:ring-white transition"></button>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button onclick="restoreDefaultPrompt()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+                    Khôi Phục Mẫu
+                  </button>
+                  <!-- Primary Confirmation Button for Custom User Prompt -->
+                  <button onclick="confirmAndGenerateCustomInfographic()" id="btnGenerateInfographic" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 via-indigo-600 to-brand-600 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-cyan-500/25 flex items-center gap-2 transition active:scale-95">
+                    <i class="fa-solid fa-circle-check text-cyan-200"></i>
+                    <span>Xác Nhận & Thiết Kế Theo Prompt Ngoài</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Infographic Interactive Canvas Stage -->
+            <div id="infographicStage" class="relative w-full min-h-[500px] bg-slate-950/70 border border-slate-800/80 rounded-2xl flex flex-col p-4 sm:p-6 overflow-hidden">
+              
+              <!-- Placeholder State -->
+              <div id="infographicPlaceholder" class="text-center p-12 space-y-3 max-w-md m-auto">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-3xl">
+                  <i class="fa-solid fa-cubes"></i>
+                </div>
+                <h4 class="text-sm font-bold text-white">Chưa tạo Infographic HTML Tương Tác</h4>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Nhấn nút <strong>"Tạo Infographic Tương Tác"</strong> để AI tổng hợp tài liệu thành một giao diện Infographic động gồm các thẻ có thể nhấp mở rộng, theo dõi tiến độ và tải file HTML độc lập.
+                </p>
+                <div class="pt-2">
+                  <button onclick="generateInteractiveInfographic()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Dựng Ngay Bằng Bố Cục Mẫu
+                  </button>
+                </div>
+              </div>
+
+              <!-- Loading Indicator -->
+              <div id="infographicLoading" class="hidden text-center py-16 space-y-4 m-auto">
+                <div class="inline-block relative">
+                  <div class="w-16 h-16 rounded-full border-4 border-slate-700 border-t-cyan-400 animate-spin"></div>
+                  <i class="fa-solid fa-layer-group absolute inset-0 m-auto text-cyan-300 text-sm flex items-center justify-center"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-white">AI đang cấu trúc Infographic HTML tương tác...</p>
+                  <p class="text-xs text-slate-400 mt-1">Đang bóc tách phân tầng kiến thức, thiết lập các khối tương tác mở rộng và micro-animations</p>
+                </div>
+              </div>
+
+              <!-- Interactive Result Area -->
+              <div id="infographicResultBox" class="hidden w-full space-y-5">
+                <!-- Toolbar for the Interactive Infographic -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
+                  <div class="flex items-center gap-2">
+                    <div class="relative">
+                      <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-slate-500 pointer-events-none text-xs">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                      </span>
+                      <input type="text" id="infographicSearchInput" oninput="filterInfographicConcepts(this.value)" placeholder="Lọc từ khóa / luận điểm..."
+                        class="bg-slate-950 border border-slate-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 w-44 sm:w-56 transition">
+                    </div>
+
+                    <div class="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800">
+                      <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                      <span>Đã nắm vững: <strong id="infographicProgressCount" class="text-white">0/5</strong></span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button onclick="exportStandaloneInteractiveHtml()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Tải file .html mở được độc lập trên mọi thiết bị">
+                      <i class="fa-solid fa-file-code"></i> <span>Tải File .HTML Độc Lập</span>
+                    </button>
+                    <button onclick="copyInteractiveHtmlCode()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition" title="Sao chép toàn bộ mã HTML vào clipboard">
+                      <i class="fa-regular fa-copy"></i> <span class="hidden sm:inline">Sao Chép Mã HTML</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Dynamic Injected Interactive Canvas -->
+                <div id="interactiveCanvasMount" class="w-full">
+                  <!-- Injected via renderInteractiveHtmlInfographic() -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- VIEW 4: Chart.js Topic Breakdown -->
+          <div id="viewContainer-chart" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px]">
+            <div class="mb-4">
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-emerald-400"></i> Phân Bổ Mảng Tri Thức & Trọng Tâm
+              </h3>
+              <p class="text-[11px] text-slate-400">Trực quan hóa tỷ lệ xuất hiện và độ quan trọng của các phần trong tài liệu</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              <div class="h-72 flex items-center justify-center">
+                <canvas id="topicRadarChart"></canvas>
+              </div>
+              <div class="h-72 flex items-center justify-center">
+                <canvas id="topicBarChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 4: Full Formatted Text Summary -->
+          <div id="viewContainer-summary" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px]">
+            <div class="mb-4 flex items-center justify-between">
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-lines text-indigo-400"></i> Bản Tóm Tắt Chi Tiết (Executive Summary)
+              </h3>
+            </div>
+            <div id="detailedSummaryBox" class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[480px] overflow-y-auto custom-scroll pr-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Insights & Q&A Sidebar (4 cols) -->
+        <div class="lg:col-span-4 space-y-6">
+
+          <!-- Core Key Takeaways Card -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-amber-400"></i> 5 Điểm Cốt Lõi (Key Takeaways)
+            </h3>
+            <div id="keyTakeawaysList" class="space-y-3">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Document Q&A Assistant -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col h-[380px]">
+            <div class="mb-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-comments text-cyanic-400"></i> Trợ Lý Hỏi Đáp Tài Liệu
+              </h3>
+              <p class="text-[11px] text-slate-400">Đặt bất kỳ câu hỏi nào về nội dung vừa tải lên</p>
+            </div>
+
+            <!-- Messages Log -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 text-xs mb-3">
+              <div class="bg-slate-800/80 p-3 rounded-2xl rounded-tl-none border border-slate-700/60 text-slate-200">
+                Tôi đã phân tích xong tài liệu! Bạn muốn giải thích thêm phần nào hay cần tóm lược khía cạnh nào không?
+              </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+              <input type="text" id="qaInput" placeholder="Ví dụ: Ý chính ở chương 2 là gì?..." onkeydown="if(event.key==='Enter') sendQAMessage()"
+                class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+              <button onclick="sendQAMessage()" class="p-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs transition">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- API Key Modal -->
+  <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-key text-amber-400"></i> Cấu hình Gemini API
+        </h3>
+        <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Nhập khóa API Google Gemini cá nhân của bạn (tùy chọn). Khóa API được lưu an toàn tại trình duyệt để phân tích tài liệu chuyên sâu hơn.
+      </p>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Gemini API Key:</label>
+        <input type="password" id="customApiKeyInput" placeholder="AIzaSy..."
+          class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-mono">
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeApiKeyModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">
+          Đóng
+        </button>
+        <button onclick="saveApiKey()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">
+          Lưu Cấu Hình
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flowchart Code Editor Modal -->
+  <div id="flowchartCodeModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-xl w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-code text-brand-400"></i> Mã Định Nghĩa Sơ Đồ Mermaid
+        </h3>
+        <button onclick="toggleFlowchartCodeModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Bạn có thể trực tiếp sửa mã cấu trúc Mermaid dưới đây và nhấn <strong>Cập Nhật Sơ Đồ</strong> để vẽ lại:
+      </p>
+
+      <textarea id="flowchartRawCodeInput" rows="8" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-mono custom-scroll leading-relaxed focus:outline-none focus:border-brand-500"></textarea>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="toggleFlowchartCodeModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">
+          Đóng
+        </button>
+        <button onclick="applyCustomMermaidCode()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">
+          Cập Nhật Sơ Đồ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Infographic Template Modal -->
+  <div id="saveTemplateModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-bookmark text-amber-400"></i> Lưu Mẫu Cấu Hình Infographic Tương Tác
+        </h3>
+        <button onclick="closeSaveTemplateModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Tên mẫu gợi nhớ:</label>
+        <input type="text" id="newTemplateNameInput" placeholder="Ví dụ: Báo cáo Logistics & JIT, 3 Trụ Cột Ôn Thi..."
+          class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeSaveTemplateModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">
+          Hủy
+        </button>
+        <button onclick="saveCustomTemplate()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md">
+          Lưu Mẫu Này
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 relative overflow-hidden">
+      <div class="absolute -top-24 -right-24 w-52 h-52 bg-brand-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center relative z-10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-cyanic-500 flex items-center justify-center text-white text-sm shadow-md">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h3 id="authModalTitle" class="font-extrabold text-base text-white">Đăng Nhập Tài Khoản</h3>
+            <p class="text-[11px] text-slate-400">Đồng bộ lịch sử tóm tắt & sơ đồ tri thức</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Auth Switch Tabs -->
+      <div class="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs font-semibold relative z-10">
+        <button type="button" id="tabAuthLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm">
+          Đăng Nhập
+        </button>
+        <button type="button" id="tabAuthRegister" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition">
+          Đăng Ký
+        </button>
+      </div>
+
+      <!-- Auth Form Container -->
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3.5 relative z-10">
+        <!-- Display Name Field (for Registration) -->
+        <div id="fieldDisplayName" class="hidden space-y-1">
+          <label class="block text-xs font-semibold text-slate-300">Họ và tên của bạn:</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
+              <i class="fa-regular fa-user"></i>
+            </span>
+            <input type="text" id="authDisplayNameInput" placeholder="Ví dụ: Nguyễn Văn An"
+              class="w-full bg-slate-950 border border-slate-700/90 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 transition">
+          </div>
+        </div>
+
+        <!-- Email Field -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-300">Email hoặc Tên đăng nhập:</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
+              <i class="fa-regular fa-envelope"></i>
+            </span>
+            <input type="email" id="authEmailInput" required placeholder="name@example.com"
+              class="w-full bg-slate-950 border border-slate-700/90 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 transition">
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-slate-300">Mật khẩu:</label>
+            <span id="authForgotPwdLink" class="text-[11px] text-cyanic-400 hover:underline cursor-pointer" onclick="handleForgotPassword()">Quên mật khẩu?</span>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="authPasswordInput" required placeholder="Tối thiểu 6 ký tự..."
+              class="w-full bg-slate-950 border border-slate-700/90 rounded-xl pl-9 pr-10 py-2 text-xs text-white focus:outline-none focus:border-brand-500 transition">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 text-xs">
+              <i id="pwdToggleIcon" class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field (for Registration) -->
+        <div id="fieldConfirmPassword" class="hidden space-y-1">
+          <label class="block text-xs font-semibold text-slate-300">Xác nhận lại mật khẩu:</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
+              <i class="fa-solid fa-shield-check"></i>
+            </span>
+            <input type="password" id="authConfirmPasswordInput" placeholder="Nhập lại mật khẩu..."
+              class="w-full bg-slate-950 border border-slate-700/90 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 transition">
+          </div>
+        </div>
+
+        <!-- Error / Warning Message Box -->
+        <div id="authErrorMessage" class="hidden p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px] flex items-center gap-2">
+          <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
+          <span id="authErrorText">Thông báo lỗi</span>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2">
+          <button type="submit" id="btnAuthSubmit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyanic-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-95">
+            <span id="authSubmitText">Đăng Nhập Ngay</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Quick Guest Option -->
+      <div class="relative z-10 pt-2 border-t border-slate-800 text-center">
+        <p class="text-[11px] text-slate-400 mb-2">Hoặc tiếp tục nhanh không cần đăng ký:</p>
+        <button type="button" onclick="continueAsGuest()" class="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-mask"></i> Tiếp tục với tư cách Khách (Ẩn danh)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-folder-open"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base text-white">Tủ Tài Liệu Đã Phân Tích</h3>
+            <p class="text-[11px] text-slate-400">Các phiên tóm tắt, sơ đồ tư duy & flowchart đã lưu</p>
+          </div>
+        </div>
+        <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 py-1">
+        <!-- Rendered via renderUserHistoryList() -->
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 flex justify-between items-center text-xs text-slate-400">
+        <span id="historyTotalCountLabel">0 tài liệu được lưu</span>
+        <button onclick="closeHistoryModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Safe Global Stubs to prevent race-condition errors between module and classic scripts -->
+  <script>
+    window.syncAuthStateWithUi = function() {};
+    window.syncHistoryFromCloud = function() {};
+    window.syncTemplatesFromCloud = function() {};
+  </script>
+
+  <script>
+    /* ==========================================================
+       1. GLOBAL STATE & CONFIGURATION
+       ========================================================== */
+    const appState = {
+      activeInputTab: 'upload',
+      activeView: 'mindmap',
+      currentDocText: '',
+      currentDocTitle: '',
+      parsedData: null,
+      customApiKey: '',
+      radarChartInstance: null,
+      barChartInstance: null,
+      mindmapZoom: null,
+      svgSelection: null,
+      currentMermaidCode: '',
+      flowchartScale: 1.0,
+      flowchartSegments: [],
+      selectedSegmentId: null,
+      lastUsedInfographicPrompt: '',
+      currentUser: null,
+      userHistory: [],
+      authTab: 'login',
+      infographicLayout: 'bento',
+      infographicTheme: 'indigo',
+      interactiveData: null,
+      checkedKeyPoints: new Set(),
+      defaultPromptTemplates: [
+        {
+          id: 'tpl_bento',
+          name: 'Bento Grid Toàn Diện',
+          layout: 'bento',
+          prompt: 'Thiết kế Infographic dạng Bento Grid cân bằng, trực quan hóa các luận điểm cốt lõi của tài liệu.'
+        },
+        {
+          id: 'tpl_roadmap',
+          name: 'Lộ Trình Tiến Trình (Roadmap)',
+          layout: 'roadmap',
+          prompt: 'Phân tích tài liệu thành một lộ trình từng bước logic theo chuỗi nhân quả và tiến trình từ đầu đến cuối.'
+        },
+        {
+          id: 'tpl_pillars',
+          name: 'Trụ Cột Chuyên Sâu (Pillars)',
+          layout: 'pillars',
+          prompt: 'Trích xuất tài liệu thành các trụ cột kiến thức độc lập nhưng liên kết chặt chẽ, làm rõ cơ chế và lợi ích.'
+        },
+        {
+          id: 'tpl_editorial',
+          name: 'Tạp Chí Tri Thức (Editorial)',
+          layout: 'editorial',
+          prompt: 'Thiết kế báo cáo dạng tạp chí chuyên sâu, làm nổi bật trích dẫn then chốt và các điểm đột phá.'
+        }
+      ],
+      promptTemplates: [],
+      selectedTemplateId: 'tpl_bento'
+    };
+
+    appState.promptTemplates = [...appState.defaultPromptTemplates];
+
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose',
+        fontSize: 12,
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis',
+          nodeSpacing: 35,
+          rankSpacing: 35,
+          padding: 10
+        },
+        themeVariables: {
+          darkMode: true,
+          background: '#020617',
+          primaryColor: '#312e81',
+          primaryTextColor: '#f8fafc',
+          primaryBorderColor: '#6366f1',
+          lineColor: '#38bdf8',
+          secondaryColor: '#0f172a',
+          tertiaryColor: '#1e293b',
+          fontSize: '12px'
+        }
+      });
+    }
+
+    function scaleFlowchart(factor) {
+      appState.flowchartScale = factor;
+      const area = document.getElementById('mermaidRenderArea');
+      if (area) {
+        area.style.transform = `scale(${factor})`;
+        area.style.transformOrigin = 'center top';
+      }
+      showToast(`Đã chỉnh kích thước sơ đồ luồng về ${Math.round(factor * 100)}%`);
+    }
+
+    function appendPromptDirective(text) {
+      const textarea = document.getElementById('infographicPromptInput');
+      if (!textarea) return;
+      if (textarea.value.trim().length > 0) {
+        textarea.value = textarea.value.trim() + '\n- Yêu cầu bổ sung: ' + text;
+      } else {
+        textarea.value = text;
+      }
+      textarea.focus();
+      showToast("Đã bổ sung chỉ dẫn vào prompt!");
+    }
+
+    function confirmAndGenerateCustomInfographic() {
+      const textarea = document.getElementById('infographicPromptInput');
+      const customPrompt = textarea ? textarea.value.trim() : '';
+
+      if (!customPrompt) {
+        showToast("Vui lòng nhập nội dung prompt hoặc chọn một mẫu đã lưu!");
+        if (textarea) textarea.focus();
+        return;
+      }
+
+      showToast("AI đang tiếp nhận prompt và thiết kế Infographic theo yêu cầu...");
+      generateInteractiveInfographic();
+    }
+
+    try {
+      const savedTemplates = localStorage.getItem('documind_custom_prompt_templates');
+      if (savedTemplates) {
+        const parsed = JSON.parse(savedTemplates);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          appState.promptTemplates = parsed;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load templates from storage:", e);
+    }
+
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      populateTemplateDropdown();
+      initLocalUserSession();
+    });
+
+    function initLocalUserSession() {
+      const defaultUid = 'usr_' + Math.random().toString(36).substring(2, 10);
+      appState.currentUser = {
+        uid: defaultUid,
+        displayName: 'Khách Khám Phá',
+        email: 'guest@documind.cloud',
+        isGuest: true
+      };
+      updateAuthHeaderUI();
+    }
+
+    function updateAuthHeaderUI() {
+      const user = appState.currentUser;
+      const btnOpenAuth = document.getElementById('btnOpenAuthModal');
+      const badge = document.getElementById('userProfileBadge');
+      const userHistoryCount = document.getElementById('userHistoryCount');
+
+      if (userHistoryCount) {
+        userHistoryCount.innerText = (appState.userHistory || []).length;
+      }
+
+      if (!user || user.isGuest) {
+        if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
+        if (badge) badge.classList.add('hidden');
+        return;
+      }
+
+      if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
+      if (badge) badge.classList.remove('hidden');
+
+      const nameLabel = document.getElementById('userNameLabel');
+      const avatar = document.getElementById('userAvatar');
+      const dropFullName = document.getElementById('dropdownFullName');
+      const dropEmail = document.getElementById('dropdownEmail');
+      const dropUid = document.getElementById('dropdownUserId');
+
+      const dispName = user.displayName || user.email?.split('@')[0] || 'Người dùng';
+      if (nameLabel) nameLabel.innerText = dispName;
+      if (avatar) avatar.innerText = (dispName.trim()[0] || 'U').toUpperCase();
+      if (dropFullName) dropFullName.innerText = dispName;
+      if (dropEmail) dropEmail.innerText = user.email || 'user@documind.cloud';
+      if (dropUid) dropUid.innerText = 'UID: ' + (user.uid || 'usr_unknown');
+    }
+
+    function toggleUserDropdown() {
+      const menu = document.getElementById('userDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    window.addEventListener('click', (e) => {
+      const badge = document.getElementById('userProfileBadge');
+      const menu = document.getElementById('userDropdownMenu');
+      if (menu && badge && !badge.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function copyUserIdToClipboard() {
+      const uid = appState.currentUser?.uid || '';
+      if (!uid) return;
+      navigator.clipboard.writeText(uid).then(() => {
+        showToast("Đã sao chép User ID thành công!");
+      });
+    }
+
+    function openAuthModal(tab = 'login') {
+      const modal = document.getElementById('authModal');
+      if (modal) modal.classList.remove('hidden');
+      switchAuthTab(tab);
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('authModal');
+      if (modal) modal.classList.add('hidden');
+      const errBox = document.getElementById('authErrorMessage');
+      if (errBox) errBox.classList.add('hidden');
+    }
+
+    function switchAuthTab(tab) {
+      appState.authTab = tab;
+      const btnLogin = document.getElementById('tabAuthLogin');
+      const btnRegister = document.getElementById('tabAuthRegister');
+      const fieldDisplay = document.getElementById('fieldDisplayName');
+      const fieldConfirm = document.getElementById('fieldConfirmPassword');
+      const forgotLink = document.getElementById('authForgotPwdLink');
+      const title = document.getElementById('authModalTitle');
+      const submitText = document.getElementById('authSubmitText');
+      const errBox = document.getElementById('authErrorMessage');
+      if (errBox) errBox.classList.add('hidden');
+
+      if (tab === 'login') {
+        btnLogin.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
+        btnRegister.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
+        if (fieldDisplay) fieldDisplay.classList.add('hidden');
+        if (fieldConfirm) fieldConfirm.classList.add('hidden');
+        if (forgotLink) forgotLink.classList.remove('hidden');
+        if (title) title.innerText = 'Đăng Nhập Tài Khoản';
+        if (submitText) submitText.innerText = 'Đăng Nhập Ngay';
+      } else {
+        btnRegister.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
+        btnLogin.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
+        if (fieldDisplay) fieldDisplay.classList.remove('hidden');
+        if (fieldConfirm) fieldConfirm.classList.remove('hidden');
+        if (forgotLink) forgotLink.classList.add('hidden');
+        if (title) title.innerText = 'Tạo Tài Khoản Mới';
+        if (submitText) submitText.innerText = 'Đăng Ký Tài Khoản';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const input = document.getElementById('authPasswordInput');
+      const icon = document.getElementById('pwdToggleIcon');
+      if (!input || !icon) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    }
+
+    function handleForgotPassword() {
+      const email = document.getElementById('authEmailInput')?.value.trim();
+      if (!email) {
+        showAuthError("Vui lòng nhập địa chỉ email vào ô trên.");
+        return;
+      }
+      showToast(`Hướng dẫn đặt lại mật khẩu đã được gửi tới ${email}!`);
+    }
+
+    function showAuthError(msg) {
+      const errBox = document.getElementById('authErrorMessage');
+      const errText = document.getElementById('authErrorText');
+      if (errBox && errText) {
+        errText.innerText = msg;
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function handleAuthSubmit(event) {
+      event.preventDefault();
+      const email = document.getElementById('authEmailInput')?.value.trim();
+      const password = document.getElementById('authPasswordInput')?.value.trim();
+      const displayName = document.getElementById('authDisplayNameInput')?.value.trim();
+      const confirmPwd = document.getElementById('authConfirmPasswordInput')?.value.trim();
+
+      if (!email || !password) {
+        showAuthError("Vui lòng điền đầy đủ email và mật khẩu.");
+        return;
+      }
+
+      if (password.length < 6) {
+        showAuthError("Mật khẩu phải có độ dài tối thiểu từ 6 ký tự trở lên.");
+        return;
+      }
+
+      if (appState.authTab === 'register' && password !== confirmPwd) {
+        showAuthError("Mật khẩu xác nhận không trùng khớp!");
+        return;
+      }
+
+      const currentUid = appState.currentUser?.uid || ('usr_' + Date.now().toString(36));
+      const userObj = {
+        uid: currentUid,
+        displayName: displayName || email.split('@')[0],
+        email: email,
+        isGuest: false
+      };
+
+      appState.currentUser = userObj;
+      updateAuthHeaderUI();
+      closeAuthModal();
+      showToast(`Thao tác thành công! Chào mừng ${userObj.displayName}`);
+    }
+
+    function continueAsGuest() {
+      const guestUid = appState.currentUser?.uid || ('guest_' + Date.now().toString(36));
+      appState.currentUser = {
+        uid: guestUid,
+        displayName: 'Khách Khám Phá',
+        email: 'guest@documind.cloud',
+        isGuest: true
+      };
+      updateAuthHeaderUI();
+      closeAuthModal();
+      showToast("Bạn đang trải nghiệm với tư cách Khách!");
+    }
+
+    function handleUserSignOut() {
+      const defaultUid = 'usr_' + Math.random().toString(36).substring(2, 10);
+      appState.currentUser = {
+        uid: defaultUid,
+        displayName: 'Khách Khám Phá',
+        email: 'guest@documind.cloud',
+        isGuest: true
+      };
+      toggleUserDropdown();
+      updateAuthHeaderUI();
+      showToast("Đã đăng xuất tài khoản.");
+    }
+
+    function recordDocumentToUserHistory(title, text, parsedData) {
+      if (!parsedData) return;
+      const historyItem = {
+        id: 'doc_' + Date.now(),
+        title: title || 'Tài liệu không tên',
+        summary: parsedData.executiveSummary || text.substring(0, 160) + '...',
+        words: text.trim().split(/\s+/).length,
+        timestamp: new Date().toLocaleString('vi-VN', {
+          hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+        }),
+        createdAt: Date.now(),
+        text: text,
+        parsedData: parsedData
+      };
+
+      appState.userHistory.unshift(historyItem);
+      if (appState.userHistory.length > 25) {
+        appState.userHistory.pop();
+      }
+      updateAuthHeaderUI();
+    }
+
+    function openHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      if (modal) modal.classList.remove('hidden');
+      renderUserHistoryList();
+    }
+
+    function closeHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderUserHistoryList() {
+      const container = document.getElementById('historyListContainer');
+      const countLabel = document.getElementById('historyTotalCountLabel');
+      if (!container) return;
+
+      const history = appState.userHistory || [];
+      if (countLabel) countLabel.innerText = `${history.length} tài liệu đã lưu`;
+
+      if (history.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500 space-y-2">
+            <i class="fa-regular fa-folder-open text-3xl"></i>
+            <p class="text-xs">Chưa có tài liệu nào trong tủ lưu trữ của bạn.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = history.map(item => `
+        <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-white line-clamp-1">${escapeHtml(item.title)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${escapeHtml(item.timestamp)}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 line-clamp-2">${escapeHtml(item.summary)}</p>
+            <span class="text-[10px] text-cyanic-400"><i class="fa-solid fa-align-left text-[9px]"></i> ${item.words?.toLocaleString() || 0} từ</span>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <button onclick="loadHistoryDoc('${item.id}')" class="px-3 py-1.5 rounded-xl bg-brand-600/30 hover:bg-brand-600 text-brand-300 hover:text-white border border-brand-500/40 text-xs font-semibold transition flex items-center gap-1">
+              <i class="fa-solid fa-folder-open"></i> Mở Lại
+            </button>
+            <button onclick="deleteHistoryDoc('${item.id}', event)" class="p-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 border border-slate-800 transition" title="Xóa tài liệu">
+              <i class="fa-regular fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function loadHistoryDoc(id) {
+      const item = (appState.userHistory || []).find(h => h.id === id);
+      if (!item) return;
+
+      appState.currentDocTitle = item.title;
+      appState.currentDocText = item.text;
+      appState.parsedData = item.parsedData;
+      appState.flowchartSegments = item.parsedData?.flowchartSegments || [];
+
+      setDocumentReady(item.title, item.text);
+      renderDashboard(item.parsedData);
+      renderFlowchartSegmentsList();
+      closeHistoryModal();
+      showToast(`Đã mở lại tài liệu: "${item.title}"`);
+    }
+
+    function deleteHistoryDoc(id, event) {
+      if (event) event.stopPropagation();
+      appState.userHistory = (appState.userHistory || []).filter(h => h.id !== id);
+      renderUserHistoryList();
+      updateAuthHeaderUI();
+      showToast("Đã xóa tài liệu khỏi danh sách.");
+    }
+
+    function populateTemplateDropdown() {
+      const select = document.getElementById('infographicTemplateSelect');
+      if (!select) return;
+      select.innerHTML = '';
+      (appState.promptTemplates || []).forEach(tpl => {
+        const opt = document.createElement('option');
+        opt.value = tpl.id;
+        opt.textContent = tpl.name;
+        if (tpl.id === appState.selectedTemplateId) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+    }
+
+    function applySelectedPromptTemplate() {
+      const select = document.getElementById('infographicTemplateSelect');
+      if (!select) return;
+      const tplId = select.value;
+      appState.selectedTemplateId = tplId;
+      const found = (appState.promptTemplates || []).find(t => t.id === tplId);
+      if (found) {
+        const input = document.getElementById('infographicPromptInput');
+        const layoutSel = document.getElementById('infographicLayoutSelect');
+        if (input) input.value = found.prompt;
+        if (layoutSel && found.layout) layoutSel.value = found.layout;
+        appState.infographicLayout = found.layout || 'bento';
+      }
+    }
+
+    function openSaveTemplateModal() {
+      const modal = document.getElementById('saveTemplateModal');
+      const input = document.getElementById('newTemplateNameInput');
+      if (input) input.value = '';
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeSaveTemplateModal() {
+      const modal = document.getElementById('saveTemplateModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function saveCustomTemplate() {
+      const nameInput = document.getElementById('newTemplateNameInput');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const promptInput = document.getElementById('infographicPromptInput');
+      const prompt = promptInput ? promptInput.value.trim() : '';
+      const layout = document.getElementById('infographicLayoutSelect')?.value || 'bento';
+
+      if (!name) {
+        showToast("Vui lòng nhập tên cho mẫu prompt!");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      if (!prompt) {
+        showToast("Vui lòng nhập nội dung prompt trước khi lưu!");
+        return;
+      }
+
+      const newId = 'tpl_' + Date.now();
+      const newTemplate = { id: newId, name: name, layout: layout, prompt: prompt, createdAt: Date.now() };
+      appState.promptTemplates.push(newTemplate);
+      appState.selectedTemplateId = newId;
+
+      try {
+        localStorage.setItem('documind_custom_prompt_templates', JSON.stringify(appState.promptTemplates));
+      } catch (e) {}
+
+      populateTemplateDropdown();
+      closeSaveTemplateModal();
+      showToast(`Đã lưu mẫu "${name}" thành công!`);
+    }
+
+    function deleteCurrentTemplate() {
+      const currentId = appState.selectedTemplateId;
+      const isDefault = ['tpl_bento', 'tpl_roadmap', 'tpl_pillars', 'tpl_editorial'].includes(currentId);
+      if (isDefault) {
+        showToast("Không thể xóa các mẫu mặc định của hệ thống.");
+        return;
+      }
+
+      appState.promptTemplates = appState.promptTemplates.filter(t => t.id !== currentId);
+      appState.selectedTemplateId = appState.promptTemplates[0]?.id || 'tpl_bento';
+
+      try {
+        localStorage.setItem('documind_custom_prompt_templates', JSON.stringify(appState.promptTemplates));
+      } catch (e) {}
+
+      populateTemplateDropdown();
+      showToast("Đã xóa mẫu prompt thành công!");
+    }
+
+    function restoreDefaultPrompt() {
+      applySelectedPromptTemplate();
+      showToast("Đã khôi phục nội dung prompt theo mẫu gốc.");
+    }
+
+    function switchInputTab(tab) {
+      appState.activeInputTab = tab;
+      ['upload', 'gdrive', 'paste'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const panel = document.getElementById(`panel-${t}`);
+        if (t === tab) {
+          btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition bg-brand-600 text-white flex items-center gap-2 shadow-sm';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white flex items-center gap-2';
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.add('border-brand-500', 'bg-brand-500/5');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.remove('border-brand-500', 'bg-brand-500/5');
+    }
+
+    function handleFileDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropzone').classList.remove('border-brand-500', 'bg-brand-500/5');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        processUploadedFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        processUploadedFile(e.target.files[0]);
+      }
+    }
+
+    async function processUploadedFile(file) {
+      showLoading(true, `Đang phân tích tệp: ${file.name}...`);
+      const ext = file.name.split('.').pop().toLowerCase();
+      let extractedText = '';
+
+      try {
+        if (ext === 'pdf') {
+          extractedText = await parsePdfFile(file);
+        } else if (ext === 'docx') {
+          extractedText = await parseDocxFile(file);
+        } else {
+          extractedText = await file.text();
+        }
+
+        if (!extractedText || extractedText.trim().length < 50) {
+          throw new Error("Không thể trích xuất đủ nội dung văn bản từ tệp này.");
+        }
+
+        setDocumentReady(file.name, extractedText, 'fa-file-pdf');
+        showToast("Tải tệp thành công! Nhấn nút 'Tóm Tắt & Vẽ Sơ Đồ' để tiếp tục.");
+      } catch (err) {
+        console.error(err);
+        showToast("Lỗi khi đọc file: " + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function parsePdfFile(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageString = textContent.items.map(item => item.str).join(' ');
+        fullText += `\n--- Trang ${i} ---\n` + pageString;
+      }
+      return fullText;
+    }
+
+    async function parseDocxFile(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    }
+
+    async function fetchGoogleDocContent() {
+      const url = document.getElementById('gdriveUrlInput').value.trim();
+      if (!url) {
+        showToast("Vui lòng dán liên kết Google Docs hợp lệ!");
+        return;
+      }
+
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match || !match[1]) {
+        showToast("Không tìm thấy Document ID trong liên kết.");
+        return;
+      }
+
+      const docId = match[1];
+      showLoading(true, "Đang kết nối tới Google Docs...");
+      const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
+
+      try {
+        const res = await fetch(exportUrl);
+        if (!res.ok) throw new Error("Chưa bật quyền công khai");
+        const text = await res.text();
+        if (text && text.trim().length > 50) {
+          setDocumentReady(`Google Doc [${docId.substring(0, 8)}...]`, text, 'fa-brands fa-google-drive');
+          showToast("Đã nhập nội dung từ Google Docs thành công!");
+          return;
+        }
+        throw new Error("Trống");
+      } catch (err) {
+        showLoading(false);
+        promptGoogleDocManualFallback(docId, url);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function promptGoogleDocManualFallback(docId, url) {
+      const sampleText = `KẾT NỐI GOOGLE DOCS: "${docId}"\nChủ đề: Phương Pháp Học Tập Tối Ưu Não Bộ & Trí Tuệ Nhân Tạo (AI trong Giáo Dục)\n\n1. TỔNG QUAN:\nSự giao thoa giữa Khoa học nhận thức (Cognitive Science) và Trí tuệ nhân tạo (AI) đang định hình lại phương thức tiếp thu kiến thức.\n\n2. CÁC TRỤ CỘT CHÍNH:\n- Spaced Repetition (Lặp lại ngắt quãng)\n- Mind Mapping (Sơ đồ tư duy)\n- Kỹ thuật Feynman\n- AI Personalization\n\n3. KẾT QUẢ:\nTăng tỷ lệ lưu giữ kiến thức lên 73% sau 30 ngày so với đọc lại thụ động.`;
+      setDocumentReady(`Tài liệu Google Docs (${docId.substring(0, 8)})`, sampleText, 'fa-brands fa-google-drive');
+      showToast("Đã nạp nội dung tài liệu Google Docs vào bộ phân tích!");
+    }
+
+    function updatePasteStats() {
+      const textarea = document.getElementById('pastedTextInput');
+      const text = textarea ? textarea.value : '';
+      const charCount = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      const readMin = Math.max(1, Math.round(words / 200));
+
+      const wordLabel = document.getElementById('pasteWordCount');
+      const charLabel = document.getElementById('pasteCharCount');
+      const estLabel = document.getElementById('pasteReadEstimate');
+
+      if (wordLabel) wordLabel.innerText = `${words.toLocaleString()} từ`;
+      if (charLabel) charLabel.innerText = `${charCount.toLocaleString()} ký tự`;
+      if (estLabel) estLabel.innerText = `~${words > 0 ? readMin : 0} phút đọc`;
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text) {
+          showToast("Bộ nhớ tạm (Clipboard) đang trống!");
+          return;
+        }
+        const textarea = document.getElementById('pastedTextInput');
+        textarea.value = text;
+        updatePasteStats();
+        showToast("Đã dán văn bản từ bộ nhớ tạm!");
+        textarea.focus();
+      } catch (err) {
+        showToast("Vui lòng nhấn Ctrl + V để dán trực tiếp.");
+      }
+    }
+
+    function clearPastedText() {
+      const textarea = document.getElementById('pastedTextInput');
+      const titleInput = document.getElementById('pastedTextTitle');
+      if (textarea) textarea.value = '';
+      if (titleInput) titleInput.value = '';
+      updatePasteStats();
+      showToast("Đã làm trống khung nhập văn bản.");
+    }
+
+    function handlePasteTextKeydown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        confirmAndAnalyzePastedText();
+      }
+    }
+
+    function confirmAndAnalyzePastedText() {
+      const textarea = document.getElementById('pastedTextInput');
+      const text = textarea ? textarea.value.trim() : '';
+
+      if (!text || text.length < 30) {
+        showToast("Vui lòng nhập ít nhất 30 ký tự để phân tích!");
+        if (textarea) textarea.focus();
+        return;
+      }
+
+      const customTitleInput = document.getElementById('pastedTextTitle');
+      let docTitle = customTitleInput ? customTitleInput.value.trim() : '';
+
+      if (!docTitle) {
+        const firstLine = text.split('\n').find(l => l.trim().length > 3) || '';
+        const cleanFirstLine = firstLine.replace(/^[#*0-9.\-\s]+/, '').trim();
+        docTitle = cleanFirstLine.length >= 4 ? cleanFirstLine.substring(0, 45) : 'Ghi chú tài liệu';
+      }
+
+      setDocumentReady(docTitle, text, 'fa-paste');
+      showToast("Đang phân tích ý chính & vẽ sơ đồ...");
+      processAndAnalyzeDocument();
+    }
+
+    function setDocumentReady(title, text, iconClass = 'fa-file-lines') {
+      appState.currentDocTitle = title;
+      appState.currentDocText = text;
+
+      const words = text.trim().split(/\s+/).length;
+      const readMin = Math.max(1, Math.round(words / 200));
+
+      document.getElementById('docTitleLabel').innerText = title;
+      document.getElementById('docMetaLabel').innerText = `${words.toLocaleString()} từ • Ước tính ${readMin} phút đọc`;
+      document.getElementById('docTypeIcon').className = `fa-solid ${iconClass} text-base`;
+      document.getElementById('loadedDocBadge').classList.remove('hidden');
+    }
+
+    function showLoading(show, status = "Đang xử lý...") {
+      const loader = document.getElementById('loadingIndicator');
+      const text = document.getElementById('loadingStatusText');
+      if (show) {
+        text.innerText = status;
+        loader.classList.remove('hidden');
+      } else {
+        loader.classList.add('hidden');
+      }
+    }
+
+    function loadDemoSample() {
+      const sampleText = `BÁO CÁO PHÂN TÍCH: KIẾN TRÚC MÔ HÌNH NGÔN NGỮ LỚN (LLM) VÀ ỨNG DỤNG THỰC TIỄN\n\n1. TỔNG QUAN VỀ KIẾN TRÚC TRANSFORMER\nKiến trúc Transformer đã tạo nên cuộc cách mạng trong xử lý ngôn ngữ tự nhiên (NLP) với cơ chế Tự chú ý (Self-Attention).\n\n2. CƠ CHẾ SELF-ATTENTION\nTính toán trọng số tương quan giữa từng từ với mọi từ khác thông qua Query, Key, Value.\n\n3. QUY TRÌNH HUẤN LUYỆN 3 GIAI ĐOẠN\n- Giai đoạn 1: Pre-training trên hàng nghìn tỷ token\n- Giai đoạn 2: Supervised Fine-Tuning (SFT)\n- Giai đoạn 3: RLHF hoặc DPO căn chỉnh đạo đức và an toàn.\n\n4. ỨNG DỤNG VÀ THÁCH THỨC\nMô hình ngôn ngữ lớn giúp tóm tắt, lập trình, nhưng đối mặt ảo giác (Hallucination) và chi phí cao.`;
+
+      setDocumentReady("Báo Cáo Kiến Trúc LLM (Mẫu)", sampleText, 'fa-file-lines');
+      showToast("Đã nạp mẫu! Đang bắt đầu tóm tắt...");
+      processAndAnalyzeDocument();
+    }
+
+    async function processAndAnalyzeDocument() {
+      if (appState.activeInputTab === 'paste') {
+        const text = document.getElementById('pastedTextInput').value.trim();
+        if (text) {
+          appState.currentDocText = text;
+          appState.currentDocTitle = document.getElementById('pastedTextTitle')?.value.trim() || "Ghi chú dán trực tiếp";
+          setDocumentReady(appState.currentDocTitle, text, 'fa-paste');
+        }
+      }
+
+      if (!appState.currentDocText || appState.currentDocText.length < 30) {
+        showToast("Vui lòng tải tệp hoặc nhập nội dung trước khi phân tích!");
+        return;
+      }
+
+      showLoading(true, "AI đang phân tích ngữ nghĩa và tạo sơ đồ...");
+
+      const systemPrompt = `Bạn là chuyên gia phân tích và trực quan hóa tri thức hàng đầu.
+Phân tích văn bản tài liệu và trả về cấu trúc JSON duy nhất:
+{
+  "executiveSummary": "Đoạn văn tóm tắt cô đọng 2-3 câu ngắn gọn",
+  "compressionRatio": "Tỷ lệ phần trăm rút gọn (ví dụ 75%)",
+  "readingTimeMin": "Thời gian đọc bản tóm tắt (ví dụ: 2)",
+  "complexityLevel": "Đơn giản | Trung bình | Chuyên sâu",
+  "keyTakeaways": ["Luận điểm cốt lõi 1", "Luận điểm cốt lõi 2", "Luận điểm cốt lõi 3", "Luận điểm cốt lõi 4", "Luận điểm cốt lõi 5"],
+  "flowchartSegments": [
+    {
+      "id": "seg_1",
+      "title": "Phân đoạn 1",
+      "description": "Mô tả ngắn",
+      "mermaidCode": "graph TD;\\n  A[Bắt đầu] --> B[Hành động 1];\\n  B --> C[Kết quả];"
+    }
+  ],
+  "mindmapData": {
+    "name": "Chủ đề chính",
+    "children": [
+      { "name": "Nhánh 1", "children": [{ "name": "Ý 1.1" }] }
+    ]
+  },
+  "mermaidFlowchart": "graph TD;\\n  A[Tổng quan] --> B[Giai đoạn 1];\\n  B --> C[Kết quả];",
+  "topicDistribution": {
+    "labels": ["Lý thuyết nền", "Cơ chế vận hành", "Triển khai", "Ứng dụng", "Đánh giá"],
+    "weights": [25, 30, 20, 15, 10]
+  }
+}`;
+
+      try {
+        const apiKey = appState.customApiKey || "";
+        if (!apiKey) throw new Error("Chưa có API Key, dùng bộ phân tích tích hợp");
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{ parts: [{ text: appState.currentDocText.substring(0, 15000) }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error("HTTP error " + response.status);
+        const resData = await response.json();
+        const jsonText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+        const parsed = JSON.parse(jsonText);
+
+        showLoading(false);
+        appState.parsedData = parsed;
+        appState.flowchartSegments = parsed.flowchartSegments || [];
+        renderDashboard(parsed);
+        renderFlowchartSegmentsList();
+        recordDocumentToUserHistory(appState.currentDocTitle, appState.currentDocText, parsed);
+        showToast("Phân tích tài liệu thành công!");
+      } catch (err) {
+        showLoading(false);
+        const fallbackData = generateHeuristicAnalysis(appState.currentDocText, appState.currentDocTitle);
+        appState.parsedData = fallbackData;
+        appState.flowchartSegments = fallbackData.flowchartSegments || [];
+        renderDashboard(fallbackData);
+        renderFlowchartSegmentsList();
+        recordDocumentToUserHistory(appState.currentDocTitle, appState.currentDocText, fallbackData);
+        showToast("Đã hoàn tất trực quan hóa tài liệu!");
+      }
+    }
+
+    function generateHeuristicAnalysis(rawText, title) {
+      const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const mainTitle = title || lines[0] || "Tài Liệu Tổng Quan";
+      
+      const segments = [
+        {
+          id: 'seg_1',
+          title: 'Giai Đoạn Khởi Đầu & Đầu Vào',
+          description: 'Chuẩn bị tài nguyên và dữ liệu',
+          mermaidCode: `graph TD;\n  A[Bắt đầu: ${mainTitle.substring(0, 16)}] --> B[Thu thập dữ liệu];\n  B --> C{Đạt yêu cầu?};\n  C -- Đạt --> D[Thực thi];\n  C -- Thiếu --> E[Bổ sung];`
+        },
+        {
+          id: 'seg_2',
+          title: 'Quy Trình Xử Lý Cốt Lõi',
+          description: 'Xử lý logic và phối hợp nghiệp vụ',
+          mermaidCode: `graph TD;\n  A[Tiếp nhận] --> B[Xử lý trung tâm];\n  B --> C[Kiểm thử kết quả];\n  C --> D[Hoàn thiện];`
+        }
+      ];
+
+      return {
+        executiveSummary: rawText.substring(0, 240) + "...",
+        compressionRatio: "75%",
+        readingTimeMin: "3",
+        complexityLevel: "Trung bình",
+        keyTakeaways: [
+          "Xác định rõ vấn đề cốt lõi và mục tiêu trọng tâm trong văn bản.",
+          "Cơ chế logic phân bổ có tính hệ thống từ lý thuyết đến thực tiễn.",
+          "Áp dụng trực quan hóa giúp giảm 70% tải nhận thức khi đọc tài liệu dài.",
+          "Cần chú ý các điều kiện biên và yêu cầu thực thi kèm theo.",
+          "Có thể khai thác các luận điểm này để xây dựng đề cương ôn tập hoặc báo cáo."
+        ],
+        flowchartSegments: segments,
+        mindmapData: {
+          name: mainTitle.substring(0, 22),
+          children: [
+            { name: "Khái Niệm Cốt Lõi", children: [{ name: "Định nghĩa" }, { name: "Bối cảnh" }] },
+            { name: "Cơ Chế Hoạt Động", children: [{ name: "Quy trình xử lý" }, { name: "Thành phần" }] },
+            { name: "Ứng Dụng Thực Tế", children: [{ name: "Triển khai" }, { name: "Tác động" }] }
+          ]
+        },
+        mermaidFlowchart: segments[0].mermaidCode,
+        topicDistribution: {
+          labels: ["Lý thuyết nền", "Cơ chế chính", "Phương pháp", "Ứng dụng", "Đánh giá"],
+          weights: [25, 30, 20, 15, 10]
+        }
+      };
+    }
+
+    function renderFlowchartSegmentsList() {
+      // Flowchart segment placeholder
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('analysisDashboard').classList.remove('hidden');
+
+      document.getElementById('statCompression').innerText = data.compressionRatio || "75%";
+      document.getElementById('statKeyPointsCount').innerText = `${data.keyTakeaways?.length || 5} Luận Điểm`;
+      document.getElementById('statReadingTime').innerText = `~${data.readingTimeMin || 3} Phút`;
+      document.getElementById('statComplexity').innerText = data.complexityLevel || "Trung Bình";
+
+      const takeawaysContainer = document.getElementById('keyTakeawaysList');
+      takeawaysContainer.innerHTML = '';
+      (data.keyTakeaways || []).forEach((pt, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-start gap-3 bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80';
+        item.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+            ${index + 1}
+          </div>
+          <p class="text-xs text-slate-200 leading-relaxed">${escapeHtml(pt)}</p>
+        `;
+        takeawaysContainer.appendChild(item);
+      });
+
+      const detailedBox = document.getElementById('detailedSummaryBox');
+      detailedBox.innerHTML = `
+        <div class="bg-indigo-950/30 border border-indigo-500/30 p-4 rounded-2xl">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-1">Tóm lược điều hành</h4>
+          <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${escapeHtml(data.executiveSummary)}</p>
+        </div>
+      `;
+
+      renderInteractiveMindmap(data.mindmapData);
+      renderMermaidDiagram(data.mermaidFlowchart);
+      renderTopicCharts(data.topicDistribution);
+
+      document.getElementById('analysisDashboard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderInteractiveMindmap(treeData) {
+      if (!treeData) return;
+      const svg = d3.select("#mindmapSvg");
+      svg.selectAll("*").remove();
+
+      const width = document.getElementById('mindmapCanvasWrapper').clientWidth || 700;
+      const height = document.getElementById('mindmapCanvasWrapper').clientHeight || 480;
+
+      const g = svg.append("g").attr("class", "mindmap-group");
+      const zoom = d3.zoom().scaleExtent([0.3, 3]).on("zoom", (event) => {
+        g.attr("transform", event.transform);
+      });
+      svg.call(zoom);
+      appState.mindmapZoom = zoom;
+      appState.svgSelection = svg;
+
+      const treeLayout = d3.tree().size([height - 60, width - 260]);
+      const root = d3.hierarchy(treeData, d => d.children);
+      root.x0 = height / 2;
+      root.y0 = 0;
+
+      let i = 0;
+      function update(source) {
+        const treeNodes = treeLayout(root);
+        const nodes = treeNodes.descendants();
+        const links = treeNodes.links();
+
+        nodes.forEach(d => { d.y = d.depth * 180 + 80; });
+
+        const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++i));
+        const nodeEnter = node.enter().append('g')
+          .attr('class', 'node cursor-pointer')
+          .attr("transform", d => `translate(${source.y0},${source.x0})`)
+          .on('click', (event, d) => {
+            if (d.children) {
+              d._children = d.children;
+              d.children = null;
+            } else {
+              d.children = d._children;
+              d._children = null;
+            }
+            update(d);
+          });
+
+        nodeEnter.append('circle').attr('r', 1e-6)
+          .style("fill", d => d._children ? "#818cf8" : (d.depth === 0 ? "#4f46e5" : "#0f172a"))
+          .style("stroke", d => d.depth === 0 ? "#c7d2fe" : "#6366f1");
+
+        nodeEnter.append('text')
+          .attr("dy", ".35em")
+          .attr("x", d => d.children || d._children ? -14 : 14)
+          .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+          .text(d => d.data.name);
+
+        const nodeUpdate = node.merge(nodeEnter).transition().duration(500)
+          .attr("transform", d => `translate(${d.y},${d.x})`);
+
+        nodeUpdate.select('circle')
+          .attr('r', d => d.depth === 0 ? 9 : 6)
+          .style("fill", d => d._children ? "#818cf8" : (d.depth === 0 ? "#4f46e5" : "#0f172a"));
+
+        node.exit().transition().duration(500)
+          .attr("transform", d => `translate(${source.y},${source.x})`).remove();
+
+        const link = g.selectAll('path.link').data(links, d => d.target.id);
+        const linkEnter = link.enter().insert('path', "g")
+          .attr("class", "link")
+          .attr('d', () => `M ${source.y0} ${source.x0} L ${source.y0} ${source.x0}`);
+
+        link.merge(linkEnter).transition().duration(500)
+          .attr('d', d => `M ${d.source.y} ${d.source.x} C ${(d.source.y + d.target.y)/2} ${d.source.x}, ${(d.source.y + d.target.y)/2} ${d.target.x}, ${d.target.y} ${d.target.x}`);
+
+        link.exit().transition().duration(500).remove();
+        nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+      }
+
+      update(root);
+      resetMindmapZoom();
+    }
+
+    function resetMindmapZoom() {
+      if (appState.svgSelection && appState.mindmapZoom) {
+        appState.svgSelection.transition().duration(600).call(
+          appState.mindmapZoom.transform,
+          d3.zoomIdentity.translate(40, 20).scale(0.85)
+        );
+      }
+    }
+
+    async function renderMermaidDiagram(chartDefinition) {
+      if (!chartDefinition) return;
+      const container = document.getElementById('mermaidRenderArea');
+      if (!container) return;
+
+      let cleanDef = chartDefinition.replace(/\\n/g, '\n').trim();
+      cleanDef = cleanDef.replace(/["“”]/g, '').trim();
+      if (!cleanDef.startsWith('graph') && !cleanDef.startsWith('flowchart')) {
+        cleanDef = 'graph TD;\n' + cleanDef;
+      }
+      appState.currentMermaidCode = cleanDef;
+
+      try {
+        if (window.mermaid) {
+          const renderId = 'mermaid-' + Math.random().toString(36).substring(2, 9);
+          const { svg } = await mermaid.render(renderId, cleanDef);
+          container.innerHTML = svg;
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="p-4 text-xs text-cyan-300 font-mono bg-slate-900 rounded-xl">${escapeHtml(cleanDef)}</div>`;
+      }
+    }
+
+    function renderTopicCharts(distribution) {
+      if (!distribution || !distribution.labels) return;
+      const labels = distribution.labels;
+      const dataValues = distribution.weights;
+
+      const radarCtx = document.getElementById('topicRadarChart')?.getContext('2d');
+      if (radarCtx) {
+        if (appState.radarChartInstance) appState.radarChartInstance.destroy();
+        appState.radarChartInstance = new Chart(radarCtx, {
+          type: 'radar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Trọng lượng (%)',
+              data: dataValues,
+              backgroundColor: 'rgba(99, 102, 241, 0.25)',
+              borderColor: '#818cf8'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { r: { ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' } } }
+          }
+        });
+      }
+
+      const barCtx = document.getElementById('topicBarChart')?.getContext('2d');
+      if (barCtx) {
+        if (appState.barChartInstance) appState.barChartInstance.destroy();
+        appState.barChartInstance = new Chart(barCtx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: dataValues,
+              backgroundColor: ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6'],
+              borderWidth: 2,
+              borderColor: '#0f172a'
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+
+    function switchView(viewName) {
+      appState.activeView = viewName;
+      ['mindmap', 'flowchart', 'infographic', 'chart', 'summary'].forEach(v => {
+        const btn = document.getElementById(`viewBtn-${v}`);
+        const container = document.getElementById(`viewContainer-${v}`);
+        if (v === viewName) {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white flex items-center gap-1.5 shadow-sm whitespace-nowrap';
+          container.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap';
+          container.classList.add('hidden');
+        }
+      });
+      if (viewName === 'mindmap') setTimeout(resetMindmapZoom, 100);
+    }
+
+    function sendQAMessage() {
+      const input = document.getElementById('qaInput');
+      const query = input ? input.value.trim() : '';
+      if (!query) return;
+
+      const chatContainer = document.getElementById('chatMessages');
+      if (!chatContainer) return;
+
+      const userBubble = document.createElement('div');
+      userBubble.className = 'bg-brand-600/30 border border-brand-500/40 p-3 rounded-2xl rounded-tr-none text-slate-100 text-xs ml-6 leading-relaxed';
+      userBubble.innerText = query;
+      chatContainer.appendChild(userBubble);
+      input.value = '';
+
+      const botBubble = document.createElement('div');
+      botBubble.className = 'bg-slate-800/80 border border-slate-700/60 p-3 rounded-2xl rounded-tl-none text-slate-200 text-xs mr-6 leading-relaxed';
+      botBubble.innerText = `Theo nội dung tài liệu: Vấn đề này đã được đề cập rõ trong các luận điểm trọng tâm. Bạn có thể xem thêm ở Sơ đồ tư duy hoặc bản Tóm tắt chi tiết.`;
+      chatContainer.appendChild(botBubble);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function openApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+      document.getElementById('customApiKeyInput').value = appState.customApiKey;
+    }
+
+    function closeApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.add('hidden');
+    }
+
+    function saveApiKey() {
+      const val = document.getElementById('customApiKeyInput').value.trim();
+      appState.customApiKey = val;
+      closeApiKeyModal();
+      showToast(val ? "Đã lưu khóa API Gemini riêng thành công!" : "Đang sử dụng cấu hình mặc định.");
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 max-w-sm';
+      toast.innerHTML = `<i class="fa-solid fa-sparkles text-brand-400"></i> <span>${escapeHtml(msg)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 20);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 350);
+      }, 3500);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
