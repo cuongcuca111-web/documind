@@ -199,6 +199,27 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
 
+    <!-- Guest Reminder & Upgrade Banner (Chỉ hiện khi là khách ẩn danh) -->
+    <div id="guestReminderBanner" class="hidden bg-gradient-to-r from-amber-500/15 via-indigo-500/15 to-brand-500/15 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg flex-shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+            <span>Bạn đang dùng chế độ Khách (Ẩn danh)</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">Tạm thời</span>
+          </h4>
+          <p class="text-[11px] text-slate-300 mt-0.5">
+            Dữ liệu tài liệu & sơ đồ có thể bị mất khi xóa cookie hoặc đổi trình duyệt. Hãy tạo tài khoản thật để lưu trữ vĩnh viễn và đồng bộ đa thiết bị!
+          </p>
+        </div>
+      </div>
+      <button onclick="openAuthModal('register')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 text-xs font-bold shadow-md flex items-center gap-1.5 whitespace-nowrap self-end sm:self-auto transition active:scale-95">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Nâng Cấp Tài Khoản Ngay
+      </button>
+    </div>
+
     <!-- UPLOAD & INPUT SECTION -->
     <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
       <div class="absolute -top-32 -right-32 w-80 h-80 bg-brand-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -973,6 +994,19 @@
             <span id="authSubmitText">Đăng Nhập Ngay</span>
           </button>
         </div>
+
+        <!-- Google Sign-in Divider -->
+        <div class="relative flex py-2 items-center">
+          <div class="flex-grow border-t border-slate-800"></div>
+          <span class="flex-shrink mx-3 text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Hoặc</span>
+          <div class="flex-grow border-t border-slate-800"></div>
+        </div>
+
+        <!-- Google Sign-in Button -->
+        <button type="button" onclick="handleGoogleSignIn()" id="btnGoogleAuth" class="w-full py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold border border-slate-700/80 shadow-md flex items-center justify-center gap-2.5 transition active:scale-95">
+          <i class="fa-brands fa-google text-rose-400 text-sm"></i>
+          <span>Tiếp tục với tài khoản Google</span>
+        </button>
       </form>
 
       <!-- Quick Guest Option -->
@@ -985,6 +1019,7 @@
     </div>
   </div>
 
+  <!-- History Modal with Search Bar and Rename Support -->
   <div id="historyModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -993,8 +1028,8 @@
             <i class="fa-solid fa-folder-open"></i>
           </div>
           <div>
-            <h3 class="font-extrabold text-base text-white">Tủ Tài Liệu Đã Phân Tích</h3>
-            <p class="text-[11px] text-slate-400">Các phiên tóm tắt, sơ đồ tư duy & flowchart đã lưu</p>
+            <h3 class="font-extrabold text-base text-white">Tủ Tài Liệu Của Tôi</h3>
+            <p class="text-[11px] text-slate-400">Các phiên tóm tắt, sơ đồ tư duy & flowchart đã lưu trên đám mây</p>
           </div>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -1002,7 +1037,16 @@
         </button>
       </div>
 
-      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 py-1">
+      <!-- Search Input for History -->
+      <div class="relative">
+        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <input type="text" id="historySearchInput" oninput="filterUserHistoryList(this.value)" placeholder="Tìm kiếm theo tiêu đề hoặc nội dung tóm tắt..."
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500 transition">
+      </div>
+
+      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 py-1 min-h-[220px]">
         <!-- Rendered via renderUserHistoryList() -->
       </div>
 
@@ -1010,6 +1054,33 @@
         <span id="historyTotalCountLabel">0 tài liệu được lưu</span>
         <button onclick="closeHistoryModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold">
           Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Document Modal -->
+  <div id="renameDocModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-cyan-400"></i> Đổi Tên Tài Liệu
+        </h3>
+        <button onclick="closeRenameModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Tiêu đề mới của tài liệu:</label>
+        <input type="text" id="renameDocTitleInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+        <input type="hidden" id="renameDocIdInput">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeRenameModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">
+          Hủy
+        </button>
+        <button onclick="confirmRenameDocument()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md">
+          Lưu Tiêu Đề
         </button>
       </div>
     </div>
@@ -1026,16 +1097,55 @@
   </script>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInAnonymously, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword,
+      signInWithPopup,
+      GoogleAuthProvider,
+      updateProfile,
+      linkWithCredential,
+      EmailAuthProvider,
+      sendPasswordResetEmail,
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc,
+      updateDoc,
+      deleteDoc, 
+      onSnapshot, 
+      collection,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-documind-app';
-    let db = null;
+    // Cấu hình Firebase Web App
+    // Nếu bạn đã có Firebase Project, hãy thay thế các thông tin bên dưới bằng cấu hình của bạn từ Firebase Console!
+    const firebaseConfig = window.__firebase_config ? JSON.parse(window.__firebase_config) : {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    let app = null;
     let auth = null;
+    let db = null;
     let unsubHistory = null;
     let unsubTemplates = null;
-    let unsubProfile = null;
+    let unsubSettings = null;
+
+    const isFirebaseConfigured = firebaseConfig && 
+                                firebaseConfig.apiKey && 
+                                firebaseConfig.apiKey !== "YOUR_API_KEY" && 
+                                !firebaseConfig.apiKey.includes("YOUR_");
 
     function updateCloudSyncBadge(status, text) {
       const badge = document.getElementById('cloudSyncBadge');
@@ -1049,197 +1159,303 @@
         label.innerText = text || 'Đang đồng bộ...';
       } else if (status === 'error') {
         icon.className = 'fa-solid fa-cloud-slash text-rose-400';
-        label.innerText = text || 'Lỗi đám mây';
+        label.innerText = text || 'Chế độ ngoại tuyến';
       } else {
         icon.className = 'fa-solid fa-cloud-check text-emerald-400';
-        label.innerText = text || 'Đã đồng bộ đám mây';
+        label.innerText = text || 'Đám mây đã kết nối';
       }
     }
 
     try {
-      if (typeof __firebase_config !== 'undefined') {
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
+      if (isFirebaseConfigured) {
+        app = initializeApp(firebaseConfig);
         auth = getAuth(app);
-
-        // RULE 3: Authenticate before running any queries
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
+        db = getFirestore(app);
 
         updateCloudSyncBadge('synced', 'Đám mây đã sẵn sàng');
 
-        onAuthStateChanged(auth, (user) => {
+        // Lắng nghe trạng thái đăng nhập bền vững
+        onAuthStateChanged(auth, async (user) => {
           if (user) {
             const uid = user.uid;
             window.documindUser = {
               uid: uid,
               isAnonymous: user.isAnonymous,
-              displayName: user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : 'Học Viên'),
-              email: user.email || 'user@documind.cloud'
+              displayName: user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : (user.email?.split('@')[0] || 'Học Viên')),
+              email: user.email || (user.isAnonymous ? 'Khách Ẩn Danh' : 'user@documind.cloud')
             };
 
-            // Detach previous listeners if any
+            // Lưu hoặc cập nhật hồ sơ người dùng trong Firestore: users/{uid}
+            try {
+              const userRef = doc(db, 'users', uid);
+              await setDoc(userRef, {
+                uid: uid,
+                displayName: window.documindUser.displayName,
+                email: user.email || '',
+                isAnonymous: user.isAnonymous,
+                lastLoginAt: Date.now()
+              }, { merge: true });
+            } catch (err) {
+              console.warn("Could not sync user profile doc:", err);
+            }
+
+            // Hủy listener cũ trước khi gắn listener mới
             if (unsubHistory) unsubHistory();
             if (unsubTemplates) unsubTemplates();
-            if (unsubProfile) unsubProfile();
+            if (unsubSettings) unsubSettings();
 
-            // RULE 1: Private user data path: /artifacts/{appId}/users/{userId}/{collectionName}
-            // RULE 2: No complex queries or orderBy; simple collection reference, sorted in JS
-            const historyColRef = collection(db, 'artifacts', appId, 'users', uid, 'documents');
-            unsubHistory = onSnapshot(historyColRef, (snapshot) => {
+            // 1. Lắng nghe Tủ tài liệu thời gian thực: users/{uid}/documents
+            const docsColRef = collection(db, 'users', uid, 'documents');
+            unsubHistory = onSnapshot(docsColRef, (snapshot) => {
               const loadedDocs = [];
-              snapshot.forEach(docSnap => {
+              snapshot.forEach((docSnap) => {
                 const item = docSnap.data();
-                if (item.parsedDataJson) {
-                  try {
-                    item.parsedData = JSON.parse(item.parsedDataJson);
-                  } catch (e) {
-                    item.parsedData = null;
-                  }
+                item.id = docSnap.id;
+                if (item.parsedDataJson && !item.parsedData) {
+                  try { item.parsedData = JSON.parse(item.parsedDataJson); } catch (e) { item.parsedData = null; }
                 }
                 loadedDocs.push(item);
               });
-              // Sort by creation time descending in memory
-              loadedDocs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+              // Sắp xếp tài liệu mới nhất lên đầu
+              loadedDocs.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
               window.syncHistoryFromCloud(loadedDocs);
               updateCloudSyncBadge('synced', 'Đã đồng bộ tài liệu');
             }, (error) => {
-              console.error("Cloud history sync error:", error);
-              updateCloudSyncBadge('error', 'Lỗi đồng bộ lịch sử');
+              console.error("Firestore history sync error:", error);
+              updateCloudSyncBadge('error', 'Lỗi đồng bộ tài liệu');
             });
 
-            // Listen for user's prompt templates
-            const templatesColRef = collection(db, 'artifacts', appId, 'users', uid, 'templates');
+            // 2. Lắng nghe Mẫu Prompt: users/{uid}/promptTemplates
+            const templatesColRef = collection(db, 'users', uid, 'promptTemplates');
             unsubTemplates = onSnapshot(templatesColRef, (snapshot) => {
               const loadedTemplates = [];
-              snapshot.forEach(docSnap => {
-                loadedTemplates.push(docSnap.data());
+              snapshot.forEach((docSnap) => {
+                const item = docSnap.data();
+                item.id = docSnap.id;
+                loadedTemplates.push(item);
               });
               loadedTemplates.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
               window.syncTemplatesFromCloud(loadedTemplates);
-              updateCloudSyncBadge('synced', 'Đã đồng bộ mẫu prompt');
             }, (error) => {
-              console.error("Cloud templates sync error:", error);
-              updateCloudSyncBadge('error', 'Lỗi đồng bộ mẫu');
+              console.warn("Templates sync error:", error);
             });
 
-            // Listen for user's profile
-            const profileDocRef = doc(db, 'artifacts', appId, 'users', uid, 'profile', 'userData');
-            unsubProfile = onSnapshot(profileDocRef, (docSnap) => {
+            // 3. Lắng nghe Cài đặt giao diện: users/{uid}/settings
+            const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
+            unsubSettings = onSnapshot(settingsDocRef, (docSnap) => {
               if (docSnap.exists()) {
-                const profileData = docSnap.data();
-                if (window.documindUser) {
-                  window.documindUser.displayName = profileData.displayName || window.documindUser.displayName;
-                  window.documindUser.email = profileData.email || window.documindUser.email;
-                  if (typeof window.syncAuthStateWithUi === 'function') {
-                    window.syncAuthStateWithUi();
-                  }
+                const st = docSnap.data();
+                if (typeof window.syncSettingsFromCloud === 'function') {
+                  window.syncSettingsFromCloud(st);
                 }
               }
             }, (error) => {
-              console.error("Cloud profile sync error:", error);
+              console.warn("Settings sync error:", error);
             });
 
             if (typeof window.syncAuthStateWithUi === 'function') {
               window.syncAuthStateWithUi();
             }
+          } else {
+            // Chưa đăng nhập: Tự động khởi tạo phiên Khách Ẩn Danh
+            try {
+              await signInAnonymously(auth);
+            } catch (err) {
+              console.warn("Anonymous sign-in error:", err);
+            }
           }
         });
+
+      } else {
+        console.warn("Chưa cấu hình Firebase Project API key. Đang chạy chế độ LocalStorage an toàn.");
+        updateCloudSyncBadge('error', 'Chế độ Local (Chưa nạp Firebase)');
       }
     } catch (err) {
-      console.warn("Cloud storage init error:", err);
-      updateCloudSyncBadge('error', 'Chế độ ngoại tuyến');
+      console.warn("Firebase initialization error:", err);
+      updateCloudSyncBadge('error', 'Ngoại tuyến');
     }
+
+    // Các hàm giao tiếp Cloud xuất ra Window
+    window.cloudAuthLogin = async function(email, password) {
+      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
+      return await signInWithEmailAndPassword(auth, email, password);
+    };
+
+    window.cloudAuthRegister = async function(email, password, displayName) {
+      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
+      
+      // Nếu đang là tài khoản khách ẩn danh, nâng cấp tài khoản để giữ nguyên dữ liệu!
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        const credential = EmailAuthProvider.credential(email, password);
+        try {
+          const res = await linkWithCredential(auth.currentUser, credential);
+          if (displayName && res.user) {
+            await updateProfile(res.user, { displayName });
+          }
+          return res;
+        } catch (linkErr) {
+          if (linkErr.code === 'auth/credential-already-in-use' || linkErr.code === 'auth/email-already-in-use') {
+            // Nếu email đã có tài khoản khác, đăng nhập trực tiếp bằng email đó
+            return await signInWithEmailAndPassword(auth, email, password);
+          }
+          throw linkErr;
+        }
+      }
+
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName && res.user) {
+        await updateProfile(res.user, { displayName });
+      }
+      return res;
+    };
+
+    window.cloudAuthGoogle = async function() {
+      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
+      // Nếu là khách, liên kết tài khoản Google để giữ dữ liệu
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        try {
+          return await signInWithPopup(auth, provider);
+        } catch (err) {
+          console.warn("Google link failed, falling back to sign-in:", err);
+          return await signInWithPopup(auth, provider);
+        }
+      }
+      return await signInWithPopup(auth, provider);
+    };
+
+    window.cloudAuthSignOut = async function() {
+      if (!auth) return;
+      await signOut(auth);
+      // Tạo lại phiên khách mới sau khi đăng xuất
+      try {
+        await signInAnonymously(auth);
+      } catch (e) {
+        console.warn("Post-signout anonymous error:", e);
+      }
+    };
+
+    window.cloudAuthResetPassword = async function(email) {
+      if (!auth) throw new Error("Chưa cấu hình Firebase!");
+      return await sendPasswordResetEmail(auth, email);
+    };
 
     window.cloudSaveDocument = async function(docItem) {
       if (!db || !auth || !auth.currentUser) return;
       updateCloudSyncBadge('syncing', 'Đang lưu lên đám mây...');
       try {
         const uid = auth.currentUser.uid;
-        const targetDocRef = doc(db, 'artifacts', appId, 'users', uid, 'documents', docItem.id);
+        const docId = docItem.id || ('doc_' + Date.now());
+        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
+        
+        // Cắt giảm nội dung gốc để không vượt giới hạn Firestore 1MB
+        const safeRawText = (docItem.text || '').substring(0, 450000);
+
         const dataToSave = {
-          id: docItem.id,
+          id: docId,
           title: docItem.title || 'Tài liệu không tên',
+          source: docItem.source || 'file',
           summary: docItem.summary || '',
           words: docItem.words || 0,
-          timestamp: docItem.timestamp || '',
+          text: safeRawText,
+          parsedDataJson: docItem.parsedData ? JSON.stringify(docItem.parsedData) : '',
+          mermaidFlowchart: docItem.mermaidFlowchart || (docItem.parsedData?.mermaidFlowchart || ''),
+          interactiveHtml: docItem.interactiveHtml || '',
           createdAt: docItem.createdAt || Date.now(),
-          text: docItem.text || '',
-          parsedDataJson: docItem.parsedData ? JSON.stringify(docItem.parsedData) : ''
+          updatedAt: Date.now()
         };
-        await setDoc(targetDocRef, dataToSave);
+
+        await setDoc(targetDocRef, dataToSave, { merge: true });
         updateCloudSyncBadge('synced', 'Đã lưu tài liệu');
+        return docId;
       } catch (err) {
-        console.error("Error saving document to cloud:", err);
-        updateCloudSyncBadge('error', 'Không thể lưu đám mây');
+        console.error("Error saving document to Firestore:", err);
+        updateCloudSyncBadge('error', 'Lỗi lưu đám mây');
+        throw err;
+      }
+    };
+
+    window.cloudUpdateDocumentField = async function(docId, fields) {
+      if (!db || !auth || !auth.currentUser || !docId) return;
+      try {
+        const uid = auth.currentUser.uid;
+        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
+        await updateDoc(targetDocRef, {
+          ...fields,
+          updatedAt: Date.now()
+        });
+        updateCloudSyncBadge('synced', 'Đã cập nhật tài liệu');
+      } catch (err) {
+        console.error("Error updating document field:", err);
       }
     };
 
     window.cloudDeleteDocument = async function(docId) {
-      if (!db || !auth || !auth.currentUser) return;
-      updateCloudSyncBadge('syncing', 'Đang xóa trên đám mây...');
+      if (!db || !auth || !auth.currentUser || !docId) return;
+      updateCloudSyncBadge('syncing', 'Đang xóa...');
       try {
         const uid = auth.currentUser.uid;
-        const targetDocRef = doc(db, 'artifacts', appId, 'users', uid, 'documents', docId);
+        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
         await deleteDoc(targetDocRef);
-        updateCloudSyncBadge('synced', 'Đã xóa khỏi đám mây');
+        updateCloudSyncBadge('synced', 'Đã xóa tài liệu');
       } catch (err) {
-        console.error("Error deleting document from cloud:", err);
+        console.error("Error deleting document from Firestore:", err);
+        updateCloudSyncBadge('error', 'Lỗi xóa tài liệu');
       }
     };
 
     window.cloudSaveTemplate = async function(templateItem) {
       if (!db || !auth || !auth.currentUser) return;
-      updateCloudSyncBadge('syncing', 'Đang lưu mẫu...');
       try {
         const uid = auth.currentUser.uid;
-        const tplDocRef = doc(db, 'artifacts', appId, 'users', uid, 'templates', templateItem.id);
+        const tplId = templateItem.id || ('tpl_' + Date.now());
+        const tplDocRef = doc(db, 'users', uid, 'promptTemplates', tplId);
         await setDoc(tplDocRef, {
-          id: templateItem.id,
+          id: tplId,
           name: templateItem.name,
           layout: templateItem.layout || 'bento',
           prompt: templateItem.prompt || '',
           createdAt: templateItem.createdAt || Date.now()
         });
-        updateCloudSyncBadge('synced', 'Đã lưu mẫu lên đám mây');
       } catch (err) {
-        console.error("Error saving template to cloud:", err);
+        console.error("Error saving template to Firestore:", err);
       }
     };
 
     window.cloudDeleteTemplate = async function(templateId) {
-      if (!db || !auth || !auth.currentUser) return;
+      if (!db || !auth || !auth.currentUser || !templateId) return;
       try {
         const uid = auth.currentUser.uid;
-        const tplDocRef = doc(db, 'artifacts', appId, 'users', uid, 'templates', templateId);
+        const tplDocRef = doc(db, 'users', uid, 'promptTemplates', templateId);
         await deleteDoc(tplDocRef);
       } catch (err) {
-        console.error("Error deleting template from cloud:", err);
+        console.error("Error deleting template from Firestore:", err);
       }
     };
 
-    window.cloudSaveUserProfile = async function(profileData) {
+    window.cloudSaveSettings = async function(settingsObj) {
       if (!db || !auth || !auth.currentUser) return;
       try {
         const uid = auth.currentUser.uid;
-        const profileDocRef = doc(db, 'artifacts', appId, 'users', uid, 'profile', 'userData');
-        await setDoc(profileDocRef, {
-          displayName: profileData.displayName || '',
-          email: profileData.email || '',
+        const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
+        // KHÔNG BAO GIỜ lưu Gemini API key lên Cloud theo đúng yêu cầu bảo mật
+        const safeSettings = {
+          infographicLayout: settingsObj.infographicLayout || 'bento',
+          infographicTheme: settingsObj.infographicTheme || 'indigo',
+          flowchartScale: settingsObj.flowchartScale || 1.0,
           updatedAt: Date.now()
-        });
+        };
+        await setDoc(settingsDocRef, safeSettings, { merge: true });
       } catch (err) {
-        console.error("Error saving profile to cloud:", err);
+        console.warn("Could not save settings to Firestore:", err);
       }
     };
 
     window.cloudAuth = auth;
     window.cloudDb = db;
-    window.appId = appId;
+    window.isFirebaseConfigured = isFirebaseConfigured;
   </script>
 
   <script>
@@ -1251,6 +1467,8 @@
       activeView: 'mindmap',
       currentDocText: '',
       currentDocTitle: '',
+      currentDocId: null,
+      activeDocSource: 'file',
       parsedData: null,
       customApiKey: '',
       radarChartInstance: null,
@@ -1265,6 +1483,7 @@
       // User authentication state
       currentUser: null,
       userHistory: [],
+      historySearchKeyword: '',
       authTab: 'login',
       // Interactive Infographic state
       infographicLayout: 'bento',
@@ -1556,11 +1775,28 @@
 
     window.syncTemplatesFromCloud = function(cloudTemplates) {
       if (Array.isArray(cloudTemplates)) {
-        // Merge cloud custom templates with default templates
         const defaultIds = new Set(appState.defaultPromptTemplates.map(t => t.id));
         const customOnly = cloudTemplates.filter(t => !defaultIds.has(t.id));
         appState.promptTemplates = [...appState.defaultPromptTemplates, ...customOnly];
         populateTemplateDropdown();
+      }
+    };
+
+    window.syncSettingsFromCloud = function(settings) {
+      if (!settings) return;
+      if (settings.infographicLayout) {
+        appState.infographicLayout = settings.infographicLayout;
+        const layoutSel = document.getElementById('infographicLayoutSelect');
+        if (layoutSel) layoutSel.value = settings.infographicLayout;
+      }
+      if (settings.infographicTheme) {
+        appState.infographicTheme = settings.infographicTheme;
+      }
+      if (settings.flowchartScale) {
+        scaleFlowchart(settings.flowchartScale);
+      }
+      if (appState.interactiveData) {
+        renderInteractiveHtmlInfographic();
       }
     };
 
@@ -1569,18 +1805,28 @@
       const btnOpenAuth = document.getElementById('btnOpenAuthModal');
       const badge = document.getElementById('userProfileBadge');
       const userHistoryCount = document.getElementById('userHistoryCount');
+      const guestBanner = document.getElementById('guestReminderBanner');
 
       if (userHistoryCount) {
         userHistoryCount.innerText = (appState.userHistory || []).length;
       }
 
-      if (!user || user.isGuest) {
+      // Quản lý hiển thị Banner nhắc nhở chế độ khách
+      if (guestBanner) {
+        if (user && user.isAnonymous) {
+          guestBanner.classList.remove('hidden');
+        } else {
+          guestBanner.classList.add('hidden');
+        }
+      }
+
+      if (!user) {
         if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
         if (badge) badge.classList.add('hidden');
         return;
       }
 
-      // Logged in state
+      // Trạng thái đã đăng nhập (cả khách lẫn tài khoản thật đều hiển thị profile badge)
       if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
       if (badge) badge.classList.remove('hidden');
 
@@ -1590,12 +1836,15 @@
       const dropEmail = document.getElementById('dropdownEmail');
       const dropUid = document.getElementById('dropdownUserId');
 
-      const dispName = user.displayName || user.email?.split('@')[0] || 'Người dùng';
+      let dispName = user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : (user.email?.split('@')[0] || 'Học Viên'));
+      if (user.isAnonymous && !dispName.includes('Khách')) {
+        dispName = 'Khách (' + (user.displayName || 'Ẩn Danh') + ')';
+      }
+
       if (nameLabel) nameLabel.innerText = dispName;
       if (avatar) avatar.innerText = (dispName.trim()[0] || 'U').toUpperCase();
       if (dropFullName) dropFullName.innerText = dispName;
-      if (dropEmail) dropEmail.innerText = user.email || 'user@documind.cloud';
-      // RULE: Display complete userId
+      if (dropEmail) dropEmail.innerText = user.email || (user.isAnonymous ? 'Tài khoản khách tạm thời' : 'user@documind.cloud');
       if (dropUid) dropUid.innerText = 'UID: ' + (user.uid || 'usr_unknown');
     }
 
@@ -1616,13 +1865,17 @@
     function copyUserIdToClipboard() {
       const uid = appState.currentUser?.uid || '';
       if (!uid) return;
-      const tempInput = document.createElement('input');
-      tempInput.value = uid;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempInput);
-      showToast("Đã sao chép User ID thành công!");
+      navigator.clipboard.writeText(uid).then(() => {
+        showToast("Đã sao chép User ID thành công!");
+      }).catch(() => {
+        const temp = document.createElement('input');
+        temp.value = uid;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast("Đã sao chép User ID thành công!");
+      });
     }
 
     function openAuthModal(tab = 'login') {
@@ -1650,6 +1903,8 @@
       const errBox = document.getElementById('authErrorMessage');
       if (errBox) errBox.classList.add('hidden');
 
+      const isAnon = appState.currentUser && appState.currentUser.isAnonymous;
+
       if (tab === 'login') {
         btnLogin.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
         btnRegister.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
@@ -1664,8 +1919,8 @@
         if (fieldDisplay) fieldDisplay.classList.remove('hidden');
         if (fieldConfirm) fieldConfirm.classList.remove('hidden');
         if (forgotLink) forgotLink.classList.add('hidden');
-        if (title) title.innerText = 'Tạo Tài Khoản Mới';
-        if (submitText) submitText.innerText = 'Đăng Ký Tài Khoản';
+        if (title) title.innerText = isAnon ? 'Nâng Cấp Tài Khoản (Giữ Dữ Liệu)' : 'Tạo Tài Khoản Mới';
+        if (submitText) submitText.innerText = isAnon ? 'Xác Nhận Nâng Cấp' : 'Đăng Ký Tài Khoản';
       }
     }
 
@@ -1682,13 +1937,36 @@
       }
     }
 
-    function handleForgotPassword() {
+    function translateFirebaseError(err) {
+      if (!err) return "Đã xảy ra lỗi không xác định.";
+      const code = err.code || err.message || '';
+      if (code.includes('auth/invalid-email')) return "Địa chỉ email không đúng định dạng.";
+      if (code.includes('auth/user-not-found')) return "Không tìm thấy tài khoản với email này.";
+      if (code.includes('auth/wrong-password') || code.includes('auth/invalid-credential')) return "Sai mật khẩu hoặc thông tin đăng nhập không hợp lệ.";
+      if (code.includes('auth/email-already-in-use')) return "Email này đã được sử dụng bởi một tài khoản khác.";
+      if (code.includes('auth/weak-password')) return "Mật khẩu quá yếu (yêu cầu tối thiểu 6 ký tự).";
+      if (code.includes('auth/network-request-failed')) return "Lỗi kết nối mạng! Vui lòng kiểm tra đường truyền Internet.";
+      if (code.includes('auth/popup-closed-by-user')) return "Cửa sổ đăng nhập đã bị đóng trước khi hoàn tất.";
+      if (code.includes('auth/too-many-requests')) return "Bạn đã thử quá nhiều lần. Vui lòng đợi trong giây lát rồi thử lại.";
+      return err.message || "Lỗi xử lý xác thực: " + code;
+    }
+
+    async function handleForgotPassword() {
       const email = document.getElementById('authEmailInput')?.value.trim();
       if (!email) {
-        showAuthError("Vui lòng nhập địa chỉ email vào ô trên để nhận liên kết khôi phục.");
+        showAuthError("Vui lòng nhập địa chỉ email vào ô trên để nhận liên kết khôi phục mật khẩu.");
         return;
       }
-      showToast(`Hướng dẫn đặt lại mật khẩu đã được gửi tới ${email}!`);
+      try {
+        if (typeof window.cloudAuthResetPassword === 'function') {
+          await window.cloudAuthResetPassword(email);
+          showToast(`Đã gửi email khôi phục mật khẩu tới ${email}! Vui lòng kiểm tra hộp thư.`);
+        } else {
+          showToast("Vui lòng cấu hình Firebase để sử dụng tính năng gửi email!");
+        }
+      } catch (err) {
+        showAuthError(translateFirebaseError(err));
+      }
     }
 
     function showAuthError(msg) {
@@ -1706,6 +1984,7 @@
       const password = document.getElementById('authPasswordInput')?.value.trim();
       const displayName = document.getElementById('authDisplayNameInput')?.value.trim();
       const confirmPwd = document.getElementById('authConfirmPasswordInput')?.value.trim();
+      const submitBtn = document.getElementById('btnAuthSubmit');
 
       if (!email || !password) {
         showAuthError("Vui lòng điền đầy đủ email và mật khẩu.");
@@ -1717,100 +1996,166 @@
         return;
       }
 
-      if (appState.authTab === 'register') {
-        if (password !== confirmPwd) {
-          showAuthError("Mật khẩu xác nhận không trùng khớp!");
-          return;
+      const origText = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang xử lý...';
+      }
+
+      try {
+        if (appState.authTab === 'register') {
+          if (password !== confirmPwd) {
+            showAuthError("Mật khẩu xác nhận không trùng khớp!");
+            return;
+          }
+
+          if (typeof window.cloudAuthRegister === 'function') {
+            await window.cloudAuthRegister(email, password, displayName);
+            closeAuthModal();
+            showToast(`Đăng ký thành công! Chào mừng ${displayName || email.split('@')[0]}`);
+          } else {
+            // Local fallback
+            const newUser = {
+              uid: 'usr_' + Date.now().toString(36),
+              displayName: displayName || email.split('@')[0],
+              email: email,
+              isAnonymous: false
+            };
+            appState.currentUser = newUser;
+            updateAuthHeaderUI();
+            closeAuthModal();
+            showToast(`Đăng ký chế độ Local thành công!`);
+          }
+        } else {
+          // Login
+          if (typeof window.cloudAuthLogin === 'function') {
+            await window.cloudAuthLogin(email, password);
+            closeAuthModal();
+            showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
+          } else {
+            const loggedUser = {
+              uid: 'usr_' + Date.now().toString(36),
+              displayName: email.split('@')[0],
+              email: email,
+              isAnonymous: false
+            };
+            appState.currentUser = loggedUser;
+            updateAuthHeaderUI();
+            closeAuthModal();
+            showToast("Đăng nhập chế độ Local thành công!");
+          }
         }
-
-        const currentUid = appState.currentUser?.uid || ('usr_' + Date.now().toString(36));
-        const newUser = {
-          uid: currentUid,
-          displayName: displayName || email.split('@')[0],
-          email: email,
-          isGuest: false
-        };
-
-        appState.currentUser = newUser;
-        if (typeof window.cloudSaveUserProfile === 'function') {
-          await window.cloudSaveUserProfile(newUser);
+      } catch (err) {
+        console.error("Auth submit error:", err);
+        showAuthError(translateFirebaseError(err));
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origText;
         }
-
-        updateAuthHeaderUI();
-        closeAuthModal();
-        showToast(`Đăng ký thành công! Chào mừng ${newUser.displayName}`);
-      } else {
-        // Login
-        const currentUid = appState.currentUser?.uid || ('usr_' + Date.now().toString(36));
-        const loggedUser = {
-          uid: currentUid,
-          displayName: displayName || email.split('@')[0],
-          email: email,
-          isGuest: false
-        };
-
-        appState.currentUser = loggedUser;
-        if (typeof window.cloudSaveUserProfile === 'function') {
-          await window.cloudSaveUserProfile(loggedUser);
-        }
-
-        updateAuthHeaderUI();
-        closeAuthModal();
-        showToast(`Đăng nhập thành công! Chào mừng trở lại ${loggedUser.displayName}`);
       }
     }
 
-    function continueAsGuest() {
-      const guestUid = appState.currentUser?.uid || ('guest_' + Date.now().toString(36));
-      const guestUser = {
-        uid: guestUid,
-        displayName: 'Khách Khám Phá',
-        email: 'guest@documind.cloud',
-        isGuest: true
-      };
-      appState.currentUser = guestUser;
-      updateAuthHeaderUI();
+    async function handleGoogleSignIn() {
+      const btn = document.getElementById('btnGoogleAuth');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-rose-400"></i> Đang kết nối Google...';
+      }
+
+      try {
+        if (typeof window.cloudAuthGoogle === 'function') {
+          await window.cloudAuthGoogle();
+          closeAuthModal();
+          showToast("Đăng nhập bằng tài khoản Google thành công!");
+        } else {
+          showAuthError("Vui lòng cấu hình Firebase để đăng nhập bằng Google.");
+        }
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        showAuthError(translateFirebaseError(err));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      }
+    }
+
+    async function continueAsGuest() {
       closeAuthModal();
-      showToast("Bạn đang trải nghiệm với tư cách Khách!");
+      try {
+        if (window.cloudAuth && !window.cloudAuth.currentUser) {
+          await window.signInAnonymously(window.cloudAuth);
+        }
+      } catch (e) {
+        console.warn("Guest init:", e);
+      }
+      showToast("Bạn đang sử dụng chế độ Khách (Ẩn danh).");
     }
 
-    function handleUserSignOut() {
-      const defaultUid = 'usr_' + Math.random().toString(36).substring(2, 10);
-      appState.currentUser = {
-        uid: defaultUid,
-        displayName: 'Khách Khám Phá',
-        email: 'guest@documind.cloud',
-        isGuest: true
-      };
+    async function handleUserSignOut() {
       toggleUserDropdown();
-      updateAuthHeaderUI();
-      showToast("Đã đăng xuất tài khoản.");
+      try {
+        if (typeof window.cloudAuthSignOut === 'function') {
+          await window.cloudAuthSignOut();
+        } else {
+          appState.currentUser = {
+            uid: 'guest_' + Date.now().toString(36),
+            displayName: 'Khách Khám Phá',
+            email: 'guest@documind.cloud',
+            isAnonymous: true
+          };
+          updateAuthHeaderUI();
+        }
+        showToast("Đã đăng xuất tài khoản thành công.");
+      } catch (err) {
+        console.error("Sign out error:", err);
+        showToast("Lỗi khi đăng xuất: " + err.message);
+      }
     }
 
-    function recordDocumentToUserHistory(title, text, parsedData) {
+    async function recordDocumentToUserHistory(title, text, parsedData) {
       if (!parsedData) return;
+      const docId = appState.currentDocId || ('doc_' + Date.now());
+      appState.currentDocId = docId;
+
       const historyItem = {
-        id: 'doc_' + Date.now(),
+        id: docId,
         title: title || 'Tài liệu không tên',
+        source: appState.activeDocSource || 'file',
         summary: parsedData.executiveSummary || text.substring(0, 160) + '...',
         words: text.trim().split(/\s+/).length,
         timestamp: new Date().toLocaleString('vi-VN', {
           hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
         }),
         createdAt: Date.now(),
+        updatedAt: Date.now(),
         text: text,
-        parsedData: parsedData
+        parsedData: parsedData,
+        mermaidFlowchart: appState.currentMermaidCode || parsedData.mermaidFlowchart || '',
+        interactiveHtml: appState.interactiveData ? JSON.stringify(appState.interactiveData) : ''
       };
 
-      // Add to in-memory history first
-      appState.userHistory.unshift(historyItem);
-      if (appState.userHistory.length > 25) {
+      // Cập nhật bộ nhớ cục bộ
+      const existingIdx = (appState.userHistory || []).findIndex(h => h.id === docId);
+      if (existingIdx >= 0) {
+        appState.userHistory[existingIdx] = historyItem;
+      } else {
+        appState.userHistory.unshift(historyItem);
+      }
+      if (appState.userHistory.length > 50) {
         appState.userHistory.pop();
       }
 
-      // Save to cloud storage
+      // Lưu lên Firestore
       if (typeof window.cloudSaveDocument === 'function') {
-        window.cloudSaveDocument(historyItem);
+        try {
+          await window.cloudSaveDocument(historyItem);
+        } catch (e) {
+          console.warn("Cloud save error:", e);
+        }
       }
 
       updateAuthHeaderUI();
@@ -1819,6 +2164,8 @@
     function openHistoryModal() {
       const modal = document.getElementById('historyModal');
       if (modal) modal.classList.remove('hidden');
+      const searchInput = document.getElementById('historySearchInput');
+      if (searchInput) searchInput.value = appState.historySearchKeyword || '';
       renderUserHistoryList();
     }
 
@@ -1827,40 +2174,60 @@
       if (modal) modal.classList.add('hidden');
     }
 
+    function filterUserHistoryList(keyword) {
+      appState.historySearchKeyword = keyword.trim().toLowerCase();
+      renderUserHistoryList();
+    }
+
     function renderUserHistoryList() {
       const container = document.getElementById('historyListContainer');
       const countLabel = document.getElementById('historyTotalCountLabel');
       if (!container) return;
 
-      const history = appState.userHistory || [];
+      let history = appState.userHistory || [];
       if (countLabel) countLabel.innerText = `${history.length} tài liệu đã lưu`;
+
+      if (appState.historySearchKeyword) {
+        const kw = appState.historySearchKeyword;
+        history = history.filter(item => 
+          (item.title || '').toLowerCase().includes(kw) || 
+          (item.summary || '').toLowerCase().includes(kw)
+        );
+      }
 
       if (history.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 text-slate-500 space-y-2">
             <i class="fa-regular fa-folder-open text-3xl"></i>
-            <p class="text-xs">Chưa có tài liệu nào trong tủ lưu trữ của bạn.</p>
+            <p class="text-xs">${appState.historySearchKeyword ? 'Không tìm thấy tài liệu nào khớp với từ khóa tìm kiếm.' : 'Chưa có tài liệu nào trong tủ lưu trữ của bạn.'}</p>
           </div>
         `;
         return;
       }
 
       container.innerHTML = history.map(item => `
-        <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div class="space-y-1 flex-1">
+        <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
+          <div class="space-y-1 flex-1 cursor-pointer" onclick="loadHistoryDoc('${item.id}')">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-white line-clamp-1">${escapeHtml(item.title)}</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${escapeHtml(item.timestamp)}</span>
+              <span class="text-xs font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition">${escapeHtml(item.title)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${escapeHtml(item.timestamp || '')}</span>
             </div>
-            <p class="text-[11px] text-slate-400 line-clamp-2">${escapeHtml(item.summary)}</p>
-            <span class="text-[10px] text-cyanic-400"><i class="fa-solid fa-align-left text-[9px]"></i> ${item.words?.toLocaleString() || 0} từ</span>
+            <p class="text-[11px] text-slate-400 line-clamp-2">${escapeHtml(item.summary || '')}</p>
+            <div class="flex items-center gap-3 text-[10px] text-slate-500 pt-0.5">
+              <span class="text-cyanic-400"><i class="fa-solid fa-align-left text-[9px]"></i> ${item.words?.toLocaleString() || 0} từ</span>
+              <span>•</span>
+              <span class="capitalize"><i class="fa-solid fa-tag text-[9px]"></i> ${escapeHtml(item.source || 'file')}</span>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+          <div class="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0">
+            <button onclick="openRenameModal('${item.id}', '${escapeHtml(item.title).replace(/'/g, "\\'")}', event)" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition" title="Đổi tên tài liệu">
+              <i class="fa-solid fa-pen-to-square text-xs"></i>
+            </button>
             <button onclick="loadHistoryDoc('${item.id}')" class="px-3 py-1.5 rounded-xl bg-brand-600/30 hover:bg-brand-600 text-brand-300 hover:text-white border border-brand-500/40 text-xs font-semibold transition flex items-center gap-1">
               <i class="fa-solid fa-folder-open"></i> Mở Lại
             </button>
-            <button onclick="deleteHistoryDoc('${item.id}', event)" class="p-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 border border-slate-800 transition" title="Xóa tài liệu">
+            <button onclick="deleteHistoryDoc('${item.id}', event)" class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 border border-slate-800 transition" title="Xóa tài liệu">
               <i class="fa-regular fa-trash-can text-xs"></i>
             </button>
           </div>
@@ -1868,14 +2235,75 @@
       `).join('');
     }
 
+    function openRenameModal(id, currentTitle, event) {
+      if (event) event.stopPropagation();
+      const modal = document.getElementById('renameDocModal');
+      const input = document.getElementById('renameDocTitleInput');
+      const idInput = document.getElementById('renameDocIdInput');
+      if (modal && input && idInput) {
+        input.value = currentTitle;
+        idInput.value = id;
+        modal.classList.remove('hidden');
+        input.focus();
+      }
+    }
+
+    function closeRenameModal() {
+      const modal = document.getElementById('renameDocModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function confirmRenameDocument() {
+      const id = document.getElementById('renameDocIdInput')?.value;
+      const newTitle = document.getElementById('renameDocTitleInput')?.value.trim();
+      if (!id || !newTitle) {
+        showToast("Vui lòng nhập tiêu đề tài liệu!");
+        return;
+      }
+
+      const item = (appState.userHistory || []).find(h => h.id === id);
+      if (item) {
+        item.title = newTitle;
+      }
+      if (appState.currentDocId === id) {
+        appState.currentDocTitle = newTitle;
+        document.getElementById('docTitleLabel').innerText = newTitle;
+      }
+
+      if (typeof window.cloudUpdateDocumentField === 'function') {
+        await window.cloudUpdateDocumentField(id, { title: newTitle });
+      }
+
+      renderUserHistoryList();
+      closeRenameModal();
+      showToast("Đã đổi tên tài liệu thành công!");
+    }
+
     function loadHistoryDoc(id) {
       const item = (appState.userHistory || []).find(h => h.id === id);
       if (!item) return;
 
+      appState.currentDocId = item.id;
       appState.currentDocTitle = item.title;
       appState.currentDocText = item.text;
       appState.parsedData = item.parsedData;
       appState.flowchartSegments = item.parsedData?.flowchartSegments || [];
+      appState.activeDocSource = item.source || 'file';
+
+      if (item.mermaidFlowchart) {
+        appState.currentMermaidCode = item.mermaidFlowchart;
+      }
+
+      // Khôi phục Infographic tương tác nếu có
+      if (item.interactiveHtml) {
+        try {
+          appState.interactiveData = JSON.parse(item.interactiveHtml);
+        } catch (e) {
+          appState.interactiveData = null;
+        }
+      } else {
+        appState.interactiveData = null;
+      }
 
       setDocumentReady(item.title, item.text);
       renderDashboard(item.parsedData);
@@ -1884,12 +2312,23 @@
       showToast(`Đã mở lại tài liệu: "${item.title}"`);
     }
 
-    function deleteHistoryDoc(id, event) {
+    async function deleteHistoryDoc(id, event) {
       if (event) event.stopPropagation();
+      const item = (appState.userHistory || []).find(h => h.id === id);
+      const title = item ? item.title : 'tài liệu này';
+      
+      const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi tủ tài liệu của mình? Hành động này không thể hoàn tác.`);
+      if (!confirmed) return;
+
       appState.userHistory = (appState.userHistory || []).filter(h => h.id !== id);
-      if (typeof window.cloudDeleteDocument === 'function') {
-        window.cloudDeleteDocument(id);
+      if (appState.currentDocId === id) {
+        appState.currentDocId = null;
       }
+
+      if (typeof window.cloudDeleteDocument === 'function') {
+        await window.cloudDeleteDocument(id);
+      }
+
       renderUserHistoryList();
       updateAuthHeaderUI();
       showToast("Đã xóa tài liệu khỏi danh sách.");
@@ -2080,6 +2519,8 @@
           throw new Error("Không thể trích xuất đủ nội dung văn bản từ tệp này.");
         }
 
+        appState.currentDocId = 'doc_' + Date.now();
+        appState.activeDocSource = ext;
         setDocumentReady(file.name, extractedText, 'fa-file-pdf');
         showToast("Đã trích xuất tệp thành công! Đang tiến hành phân tích & vẽ sơ đồ...");
 
@@ -2125,7 +2566,6 @@
       }
 
       // Extract Document ID from regular docs link
-      // e.g., https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
       const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
       if (!match || !match[1]) {
         showToast("Không tìm thấy Document ID trong liên kết. Hãy kiểm tra định dạng URL Google Docs!");
@@ -2145,6 +2585,8 @@
         }
         const text = await res.text();
         if (text && text.trim().length > 50) {
+          appState.currentDocId = 'doc_' + Date.now();
+          appState.activeDocSource = 'google_docs';
           setDocumentReady(`Google Doc [${docId.substring(0, 8)}...]`, text, 'fa-brands fa-google-drive');
           showToast("Đã nhập Google Docs! Đang bắt đầu phân tích & vẽ sơ đồ...");
           processAndAnalyzeDocument();
@@ -2174,6 +2616,8 @@ Sự giao thoa giữa Khoa học nhận thức (Cognitive Science) và Trí tu�
 3. KẾT QUẢ VÀ TƯƠNG LAI:
 Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt quãng tăng tỷ lệ lưu giữ kiến thức lên 73% sau 30 ngày so với việc đọc lại thụ động.`;
 
+      appState.currentDocId = 'doc_' + Date.now();
+      appState.activeDocSource = 'google_docs';
       setDocumentReady(`Tài liệu Google Docs (${docId.substring(0, 8)})`, sampleText, 'fa-brands fa-google-drive');
       showToast("Đã nạp nội dung tài liệu Google Docs vào bộ phân tích!");
       processAndAnalyzeDocument();
@@ -2208,7 +2652,6 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
         showToast("Đã dán văn bản từ bộ nhớ tạm!");
         textarea.focus();
       } catch (err) {
-        // In case browser clipboard API is restricted, prompt user
         showToast("Vui lòng nhấn tổ hợp Ctrl + V để dán trực tiếp vào khung soạn thảo.");
       }
     }
@@ -2244,7 +2687,6 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
       let docTitle = customTitleInput ? customTitleInput.value.trim() : '';
 
       if (!docTitle) {
-        // Derive from first non-empty line or snippet
         const firstLine = text.split('\n').find(l => l.trim().length > 3) || '';
         const cleanFirstLine = firstLine.replace(/^[#*0-9.\-\s]+/, '').trim();
         if (cleanFirstLine.length >= 4) {
@@ -2256,11 +2698,14 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
         }
       }
 
+      appState.currentDocId = 'doc_' + Date.now();
+      appState.activeDocSource = 'paste';
+
       // Mark document ready
       setDocumentReady(docTitle, text, 'fa-paste');
       showToast("Đã xác nhận văn bản! Đang tiến hành phân tích ý chính & vẽ sơ đồ...");
 
-      // Scroll to loading indicator so user clearly sees the visual feedback
+      // Scroll to loading indicator
       const loadingEl = document.getElementById('loadingIndicator');
       if (loadingEl) {
         loadingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2312,6 +2757,8 @@ Multi-Head Attention chia nhỏ không gian biểu diễn thành nhiều không 
 4. ỨNG DỤNG VÀ THÁCH THỨC
 Mô hình ngôn ngữ lớn đã chứng minh sức mạnh vượt trội trong việc tóm tắt tài liệu, lập trình tự động, phân tích tài chính và hỗ trợ ra quyết định. Tuy nhiên, các thách thức lớn vẫn tồn tại bao gồm: Hiện tượng ảo giác (Hallucination), chi phí tính toán cao và bảo mật dữ liệu riêng tư.`;
 
+      appState.currentDocId = 'doc_' + Date.now();
+      appState.activeDocSource = 'sample';
       setDocumentReady("Báo Cáo Kiến Trúc LLM (Tài Liệu Mẫu)", sampleText, 'fa-file-lines');
       showToast("Đã tải tài liệu mẫu! Đang bắt đầu tóm tắt...");
       processAndAnalyzeDocument();
@@ -2974,7 +3421,15 @@ Chỉ trả về JSON thuần:
       appState.currentMermaidCode = raw;
       renderMermaidDiagram(raw);
       toggleFlowchartCodeModal();
-      showToast("Đã cập nhật sơ đồ từ mã Mermaid!");
+
+      // Tự động cập nhật mã sơ đồ Mermaid vào Document trên Firestore
+      if (appState.currentDocId && typeof window.cloudUpdateDocumentField === 'function') {
+        window.cloudUpdateDocumentField(appState.currentDocId, {
+          mermaidFlowchart: raw
+        });
+      }
+
+      showToast("Đã cập nhật sơ đồ từ mã Mermaid và lưu lên đám mây!");
     }
 
     function renderTopicCharts(distribution) {
@@ -3141,6 +3596,13 @@ Chỉ trả về JSON thuần:
         renderInteractiveHtmlInfographic();
         showToast(`Đã đổi sang bảng màu ${getThemeDisplayName(themeName)}`);
       }
+      if (typeof window.cloudSaveSettings === 'function') {
+        window.cloudSaveSettings({
+          infographicTheme: appState.infographicTheme,
+          infographicLayout: appState.infographicLayout,
+          flowchartScale: appState.flowchartScale
+        });
+      }
     }
 
     function changeInteractiveLayout(layoutName) {
@@ -3148,6 +3610,13 @@ Chỉ trả về JSON thuần:
       if (appState.interactiveData) {
         renderInteractiveHtmlInfographic();
         showToast(`Đã chuyển sang bố cục ${getLayoutDisplayName(layoutName)}`);
+      }
+      if (typeof window.cloudSaveSettings === 'function') {
+        window.cloudSaveSettings({
+          infographicTheme: appState.infographicTheme,
+          infographicLayout: appState.infographicLayout,
+          flowchartScale: appState.flowchartScale
+        });
       }
     }
 
@@ -3348,6 +3817,13 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
         if (btnGen) btnGen.disabled = false;
         appState.checkedKeyPoints.clear();
         renderInteractiveHtmlInfographic();
+
+        // Tự động cập nhật Infographic vào Document hiện tại trên Firestore
+        if (appState.currentDocId && appState.interactiveData && typeof window.cloudUpdateDocumentField === 'function') {
+          window.cloudUpdateDocumentField(appState.currentDocId, {
+            interactiveHtml: JSON.stringify(appState.interactiveData)
+          });
+        }
       }
     }
 
