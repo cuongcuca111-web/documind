@@ -2081,11 +2081,19 @@
         }
 
         setDocumentReady(file.name, extractedText, 'fa-file-pdf');
-        showToast("Tải tệp thành công! Nhấn nút 'Tóm Tắt & Vẽ Sơ Đồ' để tiếp tục.");
+        showToast("Đã trích xuất tệp thành công! Đang tiến hành phân tích & vẽ sơ đồ...");
+
+        // Scroll to loading indicator
+        const loadingEl = document.getElementById('loadingIndicator');
+        if (loadingEl) {
+          loadingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Automatically trigger document analysis & diagram generation
+        processAndAnalyzeDocument();
       } catch (err) {
         console.error(err);
         showToast("Lỗi khi đọc file: " + err.message);
-      } finally {
         showLoading(false);
       }
     }
@@ -2138,7 +2146,8 @@
         const text = await res.text();
         if (text && text.trim().length > 50) {
           setDocumentReady(`Google Doc [${docId.substring(0, 8)}...]`, text, 'fa-brands fa-google-drive');
-          showToast("Đã nhập nội dung từ Google Docs thành công!");
+          showToast("Đã nhập Google Docs! Đang bắt đầu phân tích & vẽ sơ đồ...");
+          processAndAnalyzeDocument();
           return;
         }
         throw new Error("Nội dung trả về trống.");
@@ -2146,8 +2155,6 @@
         // Friendly fallback for CORS or permissions
         showLoading(false);
         promptGoogleDocManualFallback(docId, url);
-      } finally {
-        showLoading(false);
       }
     }
 
@@ -2169,6 +2176,7 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
 
       setDocumentReady(`Tài liệu Google Docs (${docId.substring(0, 8)})`, sampleText, 'fa-brands fa-google-drive');
       showToast("Đã nạp nội dung tài liệu Google Docs vào bộ phân tích!");
+      processAndAnalyzeDocument();
     }
 
     function updatePasteStats() {
@@ -2663,6 +2671,184 @@ Chỉ trả về JSON thuần:
           renderMermaidDiagram(fallbackCode);
           showToast("Đã tạo sơ đồ luồng theo phân đoạn của bạn!");
         }, 400);
+      }
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('analysisDashboard').classList.remove('hidden');
+
+      // Update stat cards
+      document.getElementById('statCompression').innerText = data.compressionRatio || "70%";
+      document.getElementById('statKeyPointsCount').innerText = `${data.keyTakeaways?.length || 5} Luận Điểm`;
+      document.getElementById('statReadingTime').innerText = `~${data.readingTimeMin || 3} Phút`;
+      document.getElementById('statComplexity').innerText = data.complexityLevel || "Trung Bình";
+
+      // Render Key Takeaways
+      const takeawaysContainer = document.getElementById('keyTakeawaysList');
+      takeawaysContainer.innerHTML = '';
+      (data.keyTakeaways || []).forEach((pt, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-start gap-3 bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80';
+        item.innerHTML = `
+          <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+            ${index + 1}
+          </div>
+          <p class="text-xs text-slate-200 leading-relaxed">${escapeHtml(pt)}</p>
+        `;
+        takeawaysContainer.appendChild(item);
+      });
+
+      // Render Detailed Summary Box
+      const detailedBox = document.getElementById('detailedSummaryBox');
+      detailedBox.innerHTML = `
+        <div class="bg-indigo-950/30 border border-indigo-500/30 p-4 rounded-2xl">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-300 mb-1">Tóm lược điều hành</h4>
+          <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${escapeHtml(data.executiveSummary)}</p>
+        </div>
+        <div class="mt-4 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Các phần kiến thức chính:</h4>
+          ${(data.mindmapData?.children || []).map((ch, idx) => `
+            <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+              <p class="text-xs font-bold text-brand-300 mb-1.5">${idx + 1}. ${escapeHtml(ch.name)}</p>
+              <ul class="list-disc list-inside text-xs text-slate-400 space-y-1">
+                ${(ch.children || []).map(sub => `<li>${escapeHtml(sub.name)}</li>`).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Render Visualizations
+      renderInteractiveMindmap(data.mindmapData);
+      renderMermaidDiagram(data.mermaidFlowchart);
+      renderTopicCharts(data.topicDistribution);
+
+      // Scroll smoothly to dashboard
+      document.getElementById('analysisDashboard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderInteractiveMindmap(treeData) {
+      if (!treeData) return;
+      const svg = d3.select("#mindmapSvg");
+      svg.selectAll("*").remove();
+
+      const width = document.getElementById('mindmapCanvasWrapper').clientWidth || 700;
+      const height = document.getElementById('mindmapCanvasWrapper').clientHeight || 480;
+
+      const g = svg.append("g").attr("class", "mindmap-group");
+
+      // Zoom & Pan
+      const zoom = d3.zoom()
+        .scaleExtent([0.3, 3])
+        .on("zoom", (event) => {
+          g.attr("transform", event.transform);
+        });
+      svg.call(zoom);
+      appState.mindmapZoom = zoom;
+      appState.svgSelection = svg;
+
+      // Tree layout
+      const treeLayout = d3.tree().size([height - 60, width - 260]);
+      const root = d3.hierarchy(treeData, d => d.children);
+      root.x0 = height / 2;
+      root.y0 = 0;
+
+      let i = 0;
+
+      function update(source) {
+        const treeNodes = treeLayout(root);
+        const nodes = treeNodes.descendants();
+        const links = treeNodes.links();
+
+        nodes.forEach(d => { d.y = d.depth * 180 + 80; });
+
+        // Update Nodes
+        const node = g.selectAll('g.node')
+          .data(nodes, d => d.id || (d.id = ++i));
+
+        const nodeEnter = node.enter().append('g')
+          .attr('class', 'node cursor-pointer')
+          .attr("transform", d => `translate(${source.y0},${source.x0})`)
+          .on('click', (event, d) => {
+            if (d.children) {
+              d._children = d.children;
+              d.children = null;
+            } else {
+              d.children = d._children;
+              d._children = null;
+            }
+            update(d);
+          });
+
+        nodeEnter.append('circle')
+          .attr('r', 1e-6)
+          .style("fill", d => d._children ? "#818cf8" : (d.depth === 0 ? "#4f46e5" : "#0f172a"))
+          .style("stroke", d => d.depth === 0 ? "#c7d2fe" : (d.depth === 1 ? "#6366f1" : "#38bdf8"));
+
+        nodeEnter.append('text')
+          .attr("dy", ".35em")
+          .attr("x", d => d.children || d._children ? -14 : 14)
+          .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+          .text(d => d.data.name);
+
+        // Transition nodes to new position
+        const nodeUpdate = node.merge(nodeEnter).transition().duration(500)
+          .attr("transform", d => `translate(${d.y},${d.x})`);
+
+        nodeUpdate.select('circle')
+          .attr('r', d => d.depth === 0 ? 9 : 6)
+          .style("fill", d => d._children ? "#818cf8" : (d.depth === 0 ? "#4f46e5" : "#0f172a"));
+
+        const nodeExit = node.exit().transition().duration(500)
+          .attr("transform", d => `translate(${source.y},${source.x})`)
+          .remove();
+
+        nodeExit.select('circle').attr('r', 1e-6);
+
+        // Update Links
+        const link = g.selectAll('path.link')
+          .data(links, d => d.target.id);
+
+        const linkEnter = link.enter().insert('path', "g")
+          .attr("class", "link")
+          .attr('d', d => {
+            const o = { x: source.x0, y: source.y0 };
+            return diagonal(o, o);
+          });
+
+        link.merge(linkEnter).transition().duration(500)
+          .attr('d', d => diagonal(d.source, d.target));
+
+        link.exit().transition().duration(500)
+          .attr('d', d => {
+            const o = { x: source.x, y: source.y };
+            return diagonal(o, o);
+          })
+          .remove();
+
+        nodes.forEach(d => {
+          d.x0 = d.x;
+          d.y0 = d.y;
+        });
+      }
+
+      function diagonal(s, d) {
+        return `M ${s.y} ${s.x}
+                C ${(s.y + d.y) / 2} ${s.x},
+                  ${(s.y + d.y) / 2} ${d.x},
+                  ${d.y} ${d.x}`;
+      }
+
+      update(root);
+      resetMindmapZoom();
+    }
+
+    function resetMindmapZoom() {
+      if (appState.svgSelection && appState.mindmapZoom) {
+        appState.svgSelection.transition().duration(600).call(
+          appState.mindmapZoom.transform,
+          d3.zoomIdentity.translate(40, 20).scale(0.85)
+        );
       }
     }
 
