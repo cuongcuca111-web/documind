@@ -2723,6 +2723,20 @@ Chỉ trả về JSON thuần:
       renderMermaidDiagram(data.mermaidFlowchart);
       renderTopicCharts(data.topicDistribution);
 
+      // Pre-generate Infographic data so it's instantly ready
+      if (!appState.interactiveData) {
+        const rawCustomPrompt = document.getElementById('infographicPromptInput')?.value.trim() || '';
+        appState.interactiveData = generateHeuristicInteractiveData(
+          appState.currentDocTitle,
+          data.executiveSummary,
+          data.keyTakeaways,
+          rawCustomPrompt
+        );
+        document.getElementById('infographicPlaceholder')?.classList.add('hidden');
+        document.getElementById('infographicResultBox')?.classList.remove('hidden');
+        renderInteractiveHtmlInfographic();
+      }
+
       // Scroll smoothly to dashboard
       document.getElementById('analysisDashboard').scrollIntoView({ behavior: 'smooth' });
     }
@@ -3059,6 +3073,21 @@ Chỉ trả về JSON thuần:
             renderMermaidDiagram(appState.currentMermaidCode);
           }
         }, 80);
+      } else if (viewName === 'infographic') {
+        if (!appState.interactiveData && appState.currentDocText) {
+          const rawPrompt = document.getElementById('infographicPromptInput')?.value.trim() || '';
+          appState.interactiveData = generateHeuristicInteractiveData(
+            appState.currentDocTitle,
+            appState.parsedData?.executiveSummary,
+            appState.parsedData?.keyTakeaways,
+            rawPrompt
+          );
+        }
+        if (appState.interactiveData) {
+          document.getElementById('infographicPlaceholder')?.classList.add('hidden');
+          document.getElementById('infographicResultBox')?.classList.remove('hidden');
+          renderInteractiveHtmlInfographic();
+        }
       }
     }
 
