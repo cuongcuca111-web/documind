@@ -117,14 +117,19 @@
 
   <!-- GUEST WARNING BANNER -->
   <div id="guestWarningBanner" class="hidden bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-200">
-    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
       <div class="flex items-center gap-2 text-center sm:text-left">
-        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
-        <span>Bạn đang dùng <strong>Chế độ Khách (Ẩn danh)</strong>. Dữ liệu có thể bị mất khi xóa bộ nhớ trình duyệt hoặc đổi máy.</span>
+        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm"></i>
+        <span>Bạn đang dùng <strong>Chế độ Khách (Ẩn danh)</strong>. Hãy đăng nhập tài khoản của bạn để đồng bộ tủ tài liệu lâu dài.</span>
       </div>
-      <button onclick="openAuthModal('register', true)" class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition whitespace-nowrap shadow-sm">
-        <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i> Đăng Ký Để Giữ Dữ Liệu
-      </button>
+      <div class="flex items-center gap-2 flex-wrap justify-center">
+        <button onclick="openAuthModal('login', false)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-200 border border-amber-400/40 font-semibold transition whitespace-nowrap shadow-sm">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i> Đã có tài khoản? Đăng Nhập
+        </button>
+        <button onclick="openAuthModal('register', true)" class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition whitespace-nowrap shadow-sm">
+          <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i> Đăng Ký Để Giữ Dữ Liệu
+        </button>
+      </div>
     </div>
   </div>
 
@@ -164,26 +169,29 @@
         <!-- AUTH STATE CONTAINER -->
         <div id="authHeaderContainer" class="flex items-center gap-2 ml-1">
           <!-- Logged Out State Button -->
-          <button id="btnOpenAuthModal" onclick="openAuthModal('login')" class="px-3 py-1.5 rounded-xl bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-user-circle"></i>
+          <button id="btnOpenAuthModal" onclick="openAuthModal('login')" class="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-500/20 text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
             <span>Đăng Nhập / Đăng Ký</span>
           </button>
 
           <!-- Logged In State Profile Badge -->
           <div id="userProfileBadge" class="hidden relative">
-            <button onclick="toggleUserDropdown()" class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-white transition">
+            <button onclick="toggleUserDropdown()" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-white transition">
               <div id="userAvatar" class="w-6 h-6 rounded-lg bg-gradient-to-tr from-brand-500 to-cyanic-400 flex items-center justify-center font-bold text-[11px] text-white">
                 U
               </div>
-              <span id="userNameLabel" class="font-semibold max-w-[100px] truncate text-slate-200">Đang tải...</span>
+              <span id="userNameLabel" class="font-semibold max-w-[110px] truncate text-slate-200">Đang tải...</span>
               <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
             </button>
 
             <!-- User Menu Dropdown -->
             <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-3 z-50 space-y-3">
               <div class="border-b border-slate-800 pb-2.5">
-                <p id="dropdownFullName" class="text-xs font-bold text-white truncate">Người dùng</p>
-                <p id="dropdownEmail" class="text-[11px] text-slate-400 truncate">user@documind.cloud</p>
+                <div class="flex items-center justify-between">
+                  <p id="dropdownFullName" class="text-xs font-bold text-white truncate">Người dùng</p>
+                  <span id="dropdownRoleTag" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">Thành viên</span>
+                </div>
+                <p id="dropdownEmail" class="text-[11px] text-slate-400 truncate mt-0.5">user@documind.cloud</p>
                 <div class="mt-1.5 p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[10px] font-mono text-cyan-300 flex items-center justify-between gap-1">
                   <span class="truncate" id="dropdownUserId">UID: ...</span>
                   <button onclick="copyUserIdToClipboard()" title="Sao chép User ID" class="text-slate-400 hover:text-white px-1">
@@ -192,9 +200,19 @@
                 </div>
               </div>
 
+              <!-- Guest quick actions inside dropdown -->
+              <div id="guestDropdownActions" class="hidden space-y-1.5 border-b border-slate-800 pb-2">
+                <button onclick="openAuthModal('login', false); toggleUserDropdown();" class="w-full text-left px-2.5 py-2 rounded-xl bg-brand-600/25 hover:bg-brand-600/40 text-brand-200 border border-brand-500/30 text-xs font-semibold flex items-center gap-2 transition">
+                  <i class="fa-solid fa-right-to-bracket text-brand-400"></i> Đăng Nhập Tài Khoản Thật
+                </button>
+                <button onclick="openAuthModal('register', true); toggleUserDropdown();" class="w-full text-left px-2.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/30 text-xs font-semibold flex items-center gap-2 transition">
+                  <i class="fa-solid fa-arrow-up-from-bracket text-amber-400"></i> Đăng Ký Lưu Dữ Liệu
+                </button>
+              </div>
+
               <!-- History Quick Link -->
               <div class="space-y-1">
-                <button onclick="openHistoryModal()" class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-between transition">
+                <button onclick="openHistoryModal(); toggleUserDropdown();" class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-800 text-xs text-slate-300 flex items-center justify-between transition">
                   <span class="flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-brand-400"></i> Tủ tài liệu của tôi</span>
                   <span id="userHistoryCount" class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700">0</span>
                 </button>
@@ -202,7 +220,7 @@
 
               <div class="border-t border-slate-800 pt-1">
                 <button onclick="handleUserSignOut()" class="w-full text-left px-2.5 py-2 rounded-xl hover:bg-rose-950/40 text-xs text-rose-400 flex items-center gap-2 transition">
-                  <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng Xuất
+                  <i class="fa-solid fa-arrow-right-from-bracket"></i> <span id="signOutBtnLabel">Đăng Xuất</span>
                 </button>
               </div>
             </div>
@@ -1196,18 +1214,25 @@
             window.syncAuthStateWithUi();
           }
         } else {
-          // If no user is logged in, automatically start anonymous session to ensure smooth first experience
-          try {
-            await signInAnonymously(auth);
-          } catch(err) {
-            console.warn("Anonymous auto-signin failed:", err);
+          // USER SIGNED OUT: Clean up session state completely
+          window.documindUser = null;
+          if (unsubHistory) { unsubHistory(); unsubHistory = null; }
+          if (unsubTemplates) { unsubTemplates(); unsubTemplates = null; }
+          if (unsubSettings) { unsubSettings(); unsubSettings = null; }
+
+          const guestBanner = document.getElementById('guestWarningBanner');
+          if (guestBanner) guestBanner.classList.add('hidden');
+
+          window.syncHistoryFromCloud([]);
+          if (typeof window.syncAuthStateWithUi === 'function') {
+            window.syncAuthStateWithUi();
           }
         }
       });
 
     } catch (err) {
-      console.warn("Firebase Init failed (Check your config):", err);
-      updateSyncBadge('error', 'Chưa nạp Firebase Config');
+      console.warn("Firebase Init failed:", err);
+      updateSyncBadge('error', 'Lỗi kết nối Firebase');
     }
 
     // Exposed Cloud Methods attached to window
@@ -1241,22 +1266,28 @@
       if (!auth) throw new Error("Firebase chưa được khởi tạo!");
       const provider = new GoogleAuthProvider();
       
-      // If current user is anonymous, link account so they keep their documents
-      if (auth.currentUser && auth.currentUser.isAnonymous) {
-        const result = await linkWithCredential(auth.currentUser, provider);
-        const user = result.user;
-        if (db && user) {
-          await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || user.email?.split('@')[0],
-            isAnonymous: false,
-            updatedAt: Date.now()
-          }, { merge: true });
+      // If current user is anonymous AND explicitly upgrading, try to link first
+      if (window.appState?.isUpgradingGuest && auth.currentUser && auth.currentUser.isAnonymous) {
+        try {
+          const result = await linkWithCredential(auth.currentUser, provider);
+          const user = result.user;
+          if (db && user) {
+            await setDoc(doc(db, 'users', user.uid), {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || user.email?.split('@')[0],
+              isAnonymous: false,
+              updatedAt: Date.now()
+            }, { merge: true });
+          }
+          return user;
+        } catch(linkErr) {
+          // If credential already in use by existing account, fall through to normal sign in
+          console.log("Account already exists, signing in directly...");
         }
-        return user;
       }
 
+      // Normal Google Sign In
       const res = await signInWithPopup(auth, provider);
       const user = res.user;
       if (db && user) {
@@ -1269,6 +1300,12 @@
         }, { merge: true });
       }
       return user;
+    };
+
+    window.firebaseStartAnonymousSession = async function() {
+      if (!auth) throw new Error("Firebase chưa được khởi tạo!");
+      const cred = await signInAnonymously(auth);
+      return cred.user;
     };
 
     window.firebaseUpgradeAnonymousAccount = async function(email, password, displayName) {
@@ -1301,8 +1338,6 @@
     window.firebaseSignOut = async function() {
       if (!auth) return;
       await signOut(auth);
-      // Auto-enter guest mode after sign out
-      await signInAnonymously(auth);
     };
 
     window.cloudSaveDocument = async function(docItem) {
@@ -1312,7 +1347,7 @@
         const uid = auth.currentUser.uid;
         const targetRef = doc(db, 'users', uid, 'documents', docItem.id);
         
-        // Truncate raw content to ~500KB to stay safely below Firestore 1MB limits
+        // Truncate raw content to ~450KB to stay safely below Firestore 1MB limits
         const safeRawText = (docItem.text || '').substring(0, 450000);
 
         const dataToSave = {
@@ -1469,6 +1504,7 @@
       selectedTemplateId: 'tpl_bento'
     };
 
+    window.appState = appState;
     appState.promptTemplates = [...appState.defaultPromptTemplates];
 
     // Helper: Animated Progress Simulation
@@ -1608,10 +1644,8 @@
 
     // Cloud Synchronization callbacks from Firebase module
     window.syncAuthStateWithUi = function() {
-      if (window.documindUser) {
-        appState.currentUser = window.documindUser;
-        updateAuthHeaderUI();
-      }
+      appState.currentUser = window.documindUser || null;
+      updateAuthHeaderUI();
     };
 
     window.syncHistoryFromCloud = function(cloudDocs) {
@@ -1651,17 +1685,22 @@
       const btnOpenAuth = document.getElementById('btnOpenAuthModal');
       const badge = document.getElementById('userProfileBadge');
       const userHistoryCount = document.getElementById('userHistoryCount');
+      const guestDropdownActions = document.getElementById('guestDropdownActions');
+      const roleTag = document.getElementById('dropdownRoleTag');
+      const signOutBtnLabel = document.getElementById('signOutBtnLabel');
 
       if (userHistoryCount) {
         userHistoryCount.innerText = (appState.userHistory || []).length;
       }
 
       if (!user) {
+        // Completely logged out
         if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
         if (badge) badge.classList.add('hidden');
         return;
       }
 
+      // Logged in (either Real account or Guest)
       if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
       if (badge) badge.classList.remove('hidden');
 
@@ -1671,12 +1710,33 @@
       const dropEmail = document.getElementById('dropdownEmail');
       const dropUid = document.getElementById('dropdownUserId');
 
-      const dispName = user.displayName || user.email?.split('@')[0] || (user.isAnonymous ? 'Khách Khám Phá' : 'Học Viên');
-      if (nameLabel) nameLabel.innerText = dispName;
-      if (avatar) avatar.innerText = (dispName.trim()[0] || 'U').toUpperCase();
+      const isGuest = user.isAnonymous;
+      const dispName = user.displayName || user.email?.split('@')[0] || (isGuest ? 'Khách Khám Phá' : 'Học Viên');
+
+      if (nameLabel) nameLabel.innerText = isGuest ? 'Khách Khám Phá' : dispName;
+      if (avatar) avatar.innerText = (isGuest ? 'K' : (dispName.trim()[0] || 'U')).toUpperCase();
       if (dropFullName) dropFullName.innerText = dispName;
-      if (dropEmail) dropEmail.innerText = user.email || (user.isAnonymous ? 'Chế độ khách (Ẩn danh)' : 'user@documind.cloud');
+      if (dropEmail) dropEmail.innerText = user.email || (isGuest ? 'guest@documind.cloud' : '');
       if (dropUid) dropUid.innerText = 'UID: ' + (user.uid || '...');
+
+      if (roleTag) {
+        if (isGuest) {
+          roleTag.innerText = 'Ẩn Danh';
+          roleTag.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        } else {
+          roleTag.innerText = 'Chính Thức';
+          roleTag.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
+      }
+
+      if (guestDropdownActions) {
+        if (isGuest) guestDropdownActions.classList.remove('hidden');
+        else guestDropdownActions.classList.add('hidden');
+      }
+
+      if (signOutBtnLabel) {
+        signOutBtnLabel.innerText = isGuest ? 'Thoát Chế Độ Khách' : 'Đăng Xuất';
+      }
     }
 
     function toggleUserDropdown() {
@@ -1711,8 +1771,12 @@
       const googleBtnText = document.getElementById('googleBtnText');
 
       if (guestWrapper) {
-        if (isUpgrade) guestWrapper.classList.add('hidden');
-        else guestWrapper.classList.remove('hidden');
+        // If already in guest mode or upgrading, hide the redundant "continue as guest" button
+        if (isUpgrade || (appState.currentUser && appState.currentUser.isAnonymous)) {
+          guestWrapper.classList.add('hidden');
+        } else {
+          guestWrapper.classList.remove('hidden');
+        }
       }
 
       if (googleBtnText) {
@@ -1744,11 +1808,11 @@
       const errBox = document.getElementById('authErrorMessage');
       if (errBox) errBox.classList.add('hidden');
 
-      if (appState.isUpgradingGuest) {
+      if (appState.isUpgradingGuest && tab === 'register') {
         title.innerText = 'Nâng Cấp Tài Khoản Khách';
-        subtitle.innerText = 'Lưu vĩnh viễn tủ tài liệu của bạn vào tài khoản thật';
+        subtitle.innerText = 'Giữ nguyên toàn bộ tủ tài liệu của bạn vào tài khoản mới';
         submitText.innerText = 'Xác Nhận Nâng Cấp';
-        btnLogin.classList.add('hidden');
+        btnLogin.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
         btnRegister.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
         if (fieldDisplay) fieldDisplay.classList.remove('hidden');
         if (fieldConfirm) fieldConfirm.classList.remove('hidden');
@@ -1756,7 +1820,6 @@
         return;
       }
 
-      btnLogin.classList.remove('hidden');
       if (tab === 'login') {
         btnLogin.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
         btnRegister.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
@@ -1803,7 +1866,7 @@
     function mapFirebaseError(errCode) {
       switch(errCode) {
         case 'auth/email-already-in-use':
-          return 'Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.';
+          return 'Email này đã được đăng ký. Bạn hãy chuyển sang tab "Đăng Nhập".';
         case 'auth/invalid-email':
           return 'Định dạng email không hợp lệ.';
         case 'auth/wrong-password':
@@ -1843,7 +1906,7 @@
       if (submitBtn) submitBtn.disabled = true;
 
       try {
-        if (appState.isUpgradingGuest) {
+        if (appState.isUpgradingGuest && appState.authTab === 'register') {
           if (password !== confirmPwd) {
             showAuthError("Mật khẩu xác nhận không trùng khớp!");
             if (submitBtn) submitBtn.disabled = false;
@@ -1862,6 +1925,7 @@
           closeAuthModal();
           showToast(`Đăng ký thành công! Chào mừng ${displayName || email}`);
         } else {
+          // Normal Login
           await window.firebaseLoginWithEmail(email, password);
           closeAuthModal();
           showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
@@ -1899,16 +1963,28 @@
       }
     }
 
-    function continueAsGuest() {
-      closeAuthModal();
-      showToast("Bạn đang trải nghiệm với tư cách Khách. Dữ liệu sẽ lưu tạm trên trình duyệt.");
+    async function continueAsGuest() {
+      try {
+        closeAuthModal();
+        if (typeof window.firebaseStartAnonymousSession === 'function') {
+          await window.firebaseStartAnonymousSession();
+        }
+        showToast("Bạn đang trải nghiệm với tư cách Khách. Dữ liệu sẽ lưu tạm trên trình duyệt.");
+      } catch (err) {
+        console.warn(err);
+      }
     }
 
     async function handleUserSignOut() {
       try {
-        toggleUserDropdown();
+        const menu = document.getElementById('userDropdownMenu');
+        if (menu) menu.classList.add('hidden');
         await window.firebaseSignOut();
-        showToast("Đã đăng xuất tài khoản.");
+        showToast("Đã thoát tài khoản thành công.");
+        // Open login modal so user can immediately sign in to their registered account
+        setTimeout(() => {
+          openAuthModal('login', false);
+        }, 300);
       } catch (err) {
         console.error(err);
       }
