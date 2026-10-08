@@ -78,7 +78,6 @@
       stroke-width: 1.8px;
       stroke-opacity: 0.7;
     }
-    /* Compact, elegant styling for Mermaid flowcharts */
     #mermaidRenderArea svg {
       max-width: 440px !important;
       height: auto !important;
@@ -116,6 +115,20 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
 
+  <!-- GUEST WARNING BANNER -->
+  <div id="guestWarningBanner" class="hidden bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-200">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-center sm:text-left">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+        <span>Bạn đang dùng <strong>Chế độ Khách (Ẩn danh)</strong>. Dữ liệu có thể bị mất khi xóa bộ nhớ trình duyệt hoặc đổi máy.</span>
+      </div>
+      <button onclick="openAuthModal('register', true)" class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition whitespace-nowrap shadow-sm">
+        <i class="fa-solid fa-arrow-up-from-bracket mr-1"></i> Đăng Ký Để Giữ Dữ Liệu
+      </button>
+    </div>
+  </div>
+
+  <!-- HEADER -->
   <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -127,7 +140,7 @@
             <h1 class="font-extrabold text-lg tracking-tight text-white">Docu<span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyanic-400">Mind</span></h1>
             <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 border border-brand-500/30">AI Visualizer</span>
           </div>
-          <p class="text-[11px] text-slate-400">Trích xuất cốt lõi • Vẽ Mindmap • Google Drive & Docs</p>
+          <p class="text-[11px] text-slate-400">Trích xuất cốt lõi • Vẽ Mindmap • Lưu trữ Firebase</p>
         </div>
       </div>
 
@@ -136,9 +149,10 @@
           <i class="fa-solid fa-key text-amber-400"></i>
           <span class="hidden sm:inline">Cấu hình API</span>
         </button>
+        
         <button onclick="loadDemoSample()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-cyanic-600 hover:opacity-90 text-white text-xs font-semibold shadow-md flex items-center gap-1.5 transition">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span>Thử tài liệu mẫu</span>
+          <span class="hidden md:inline">Tài liệu mẫu</span>
         </button>
 
         <!-- Cloud Sync Status Badge -->
@@ -147,6 +161,7 @@
           <span id="cloudSyncText">Đám mây kết nối</span>
         </div>
 
+        <!-- AUTH STATE CONTAINER -->
         <div id="authHeaderContainer" class="flex items-center gap-2 ml-1">
           <!-- Logged Out State Button -->
           <button id="btnOpenAuthModal" onclick="openAuthModal('login')" class="px-3 py-1.5 rounded-xl bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 text-xs font-semibold flex items-center gap-1.5 transition">
@@ -154,21 +169,21 @@
             <span>Đăng Nhập / Đăng Ký</span>
           </button>
 
-          <!-- Logged In State Profile Badge (Hidden initially) -->
+          <!-- Logged In State Profile Badge -->
           <div id="userProfileBadge" class="hidden relative">
             <button onclick="toggleUserDropdown()" class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-white transition">
               <div id="userAvatar" class="w-6 h-6 rounded-lg bg-gradient-to-tr from-brand-500 to-cyanic-400 flex items-center justify-center font-bold text-[11px] text-white">
                 U
               </div>
-              <span id="userNameLabel" class="font-semibold max-w-[100px] truncate text-slate-200">Người dùng</span>
+              <span id="userNameLabel" class="font-semibold max-w-[100px] truncate text-slate-200">Đang tải...</span>
               <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
             </button>
 
             <!-- User Menu Dropdown -->
             <div id="userDropdownMenu" class="hidden absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-3 z-50 space-y-3">
               <div class="border-b border-slate-800 pb-2.5">
-                <p id="dropdownFullName" class="text-xs font-bold text-white truncate">Học viên DocuMind</p>
-                <p id="dropdownEmail" class="text-[11px] text-slate-400 truncate">user@documind.ai</p>
+                <p id="dropdownFullName" class="text-xs font-bold text-white truncate">Người dùng</p>
+                <p id="dropdownEmail" class="text-[11px] text-slate-400 truncate">user@documind.cloud</p>
                 <div class="mt-1.5 p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-[10px] font-mono text-cyan-300 flex items-center justify-between gap-1">
                   <span class="truncate" id="dropdownUserId">UID: ...</span>
                   <button onclick="copyUserIdToClipboard()" title="Sao chép User ID" class="text-slate-400 hover:text-white px-1">
@@ -197,28 +212,8 @@
     </div>
   </header>
 
+  <!-- MAIN APP CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
-
-    <!-- Guest Reminder & Upgrade Banner (Chỉ hiện khi là khách ẩn danh) -->
-    <div id="guestReminderBanner" class="hidden bg-gradient-to-r from-amber-500/15 via-indigo-500/15 to-brand-500/15 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg flex-shrink-0">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <div>
-          <h4 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-            <span>Bạn đang dùng chế độ Khách (Ẩn danh)</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">Tạm thời</span>
-          </h4>
-          <p class="text-[11px] text-slate-300 mt-0.5">
-            Dữ liệu tài liệu & sơ đồ có thể bị mất khi xóa cookie hoặc đổi trình duyệt. Hãy tạo tài khoản thật để lưu trữ vĩnh viễn và đồng bộ đa thiết bị!
-          </p>
-        </div>
-      </div>
-      <button onclick="openAuthModal('register')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:opacity-95 text-slate-950 text-xs font-bold shadow-md flex items-center gap-1.5 whitespace-nowrap self-end sm:self-auto transition active:scale-95">
-        <i class="fa-solid fa-cloud-arrow-up"></i> Nâng Cấp Tài Khoản Ngay
-      </button>
-    </div>
 
     <!-- UPLOAD & INPUT SECTION -->
     <section class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 backdrop-blur-md shadow-xl relative overflow-hidden">
@@ -255,7 +250,7 @@
             </div>
             <div>
               <p class="text-sm font-semibold text-white">Kéo thả tệp vào đây hoặc <span class="text-brand-400 underline underline-offset-4">Chọn từ máy tính</span></p>
-              <p class="text-xs text-slate-400 mt-1">Hỗ trợ các định dạng: <strong>.PDF, .DOCX (Word), .TXT, .MD</strong> (Tự động đọc nội dung bằng thư viện chuyên dụng)</p>
+              <p class="text-xs text-slate-400 mt-1">Hỗ trợ các định dạng: <strong>.PDF, .DOCX (Word), .TXT, .MD</strong></p>
             </div>
           </div>
         </div>
@@ -279,19 +274,12 @@
               <i class="fa-solid fa-cloud-arrow-down"></i> Tải Từ Google Docs
             </button>
           </div>
-          <div class="mt-3 flex items-start gap-2 text-[11px] text-slate-400 bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80">
-            <i class="fa-solid fa-circle-info text-cyanic-400 mt-0.5"></i>
-            <div>
-              <span>Mẹo: Hãy đảm bảo file Google Doc đã được bật chế độ <strong>"Bất kỳ ai có đường liên kết đều có thể xem"</strong>. Hệ thống sẽ bóc tách Document ID và tải phiên bản định dạng văn bản để xử lý ngay.</span>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- Input Panel 3: Paste Direct Text -->
       <div id="panel-paste" class="hidden space-y-4">
         <div class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800/90 space-y-3.5">
-          <!-- Optional Title Bar -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div class="flex-1">
               <label for="pastedTextTitle" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
@@ -301,7 +289,6 @@
                 class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 transition placeholder:text-slate-500">
             </div>
 
-            <!-- Quick Clipboard & Clear Actions -->
             <div class="flex items-center gap-2 self-end sm:self-auto sm:mt-5">
               <button type="button" onclick="pasteFromClipboard()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/80 flex items-center gap-1.5 transition" title="Dán nội dung từ bộ nhớ tạm">
                 <i class="fa-regular fa-paste text-brand-400"></i>
@@ -313,16 +300,14 @@
             </div>
           </div>
 
-          <!-- Main Textarea -->
           <div class="relative">
-            <textarea id="pastedTextInput" rows="8"
+            <textarea id="pastedTextInput" rows="7"
               oninput="updatePasteStats()"
               onkeydown="handlePasteTextKeydown(event)"
-              placeholder="Dán nội dung tài liệu, giáo trình, bài giảng hoặc ghi chú của bạn vào đây (hỗ trợ văn bản thuần, danh sách, markdown)..."
+              placeholder="Dán nội dung tài liệu, giáo trình, bài giảng hoặc ghi chú của bạn vào đây..."
               class="w-full bg-slate-950 border border-slate-700/80 rounded-2xl p-4 text-xs sm:text-sm text-white focus:outline-none focus:border-brand-500 custom-scroll transition leading-relaxed placeholder:text-slate-600"></textarea>
           </div>
 
-          <!-- Footer Bar: Realtime Word Stats & Primary Confirmation Button -->
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1 border-t border-slate-800/60">
             <div class="flex items-center gap-4 text-xs text-slate-400">
               <div class="flex items-center gap-1.5">
@@ -339,20 +324,16 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-3">
-              <span class="hidden md:inline-block text-[11px] text-slate-500">
-                <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-400">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-400">Enter</kbd>
-              </span>
-              <button type="button" onclick="confirmAndAnalyzePastedText()" id="btnConfirmPastedText"
-                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyanic-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap">
-                <i class="fa-solid fa-circle-check text-cyanic-200"></i>
-                <span>Xác Nhận & Phân Tích Ngay</span>
-              </button>
-            </div>
+            <button type="button" onclick="confirmAndAnalyzePastedText()" id="btnConfirmPastedText"
+              class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-cyanic-500 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2 transition active:scale-95 whitespace-nowrap">
+              <i class="fa-solid fa-circle-check text-cyanic-200"></i>
+              <span>Xác Nhận & Phân Tích Ngay</span>
+            </button>
           </div>
         </div>
       </div>
 
+      <!-- Loaded Document Badge -->
       <div id="loadedDocBadge" class="hidden mt-4 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-brand-950/20 p-3 rounded-2xl border border-brand-500/20">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-brand-500/20 text-brand-300 flex items-center justify-center">
@@ -368,31 +349,25 @@
         </button>
       </div>
 
-      <!-- Loading State Indicator -->
-      <div id="loadingIndicator" class="hidden mt-6 text-center py-8 space-y-4 max-w-md mx-auto">
-        <div class="inline-block relative">
-          <div class="w-14 h-14 rounded-full border-4 border-slate-700 border-t-brand-500 animate-spin"></div>
-          <i class="fa-solid fa-brain absolute inset-0 m-auto text-brand-400 text-sm flex items-center justify-center"></i>
+      <!-- Loading State Indicator with Progress Tracker -->
+      <div id="loadingIndicator" class="hidden mt-6 text-center py-6 space-y-3 bg-slate-950/60 p-4 rounded-2xl border border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-300 font-semibold px-1">
+          <span id="loadingDetailStep" class="flex items-center gap-2 text-cyan-300">
+            <i class="fa-solid fa-circle-notch animate-spin"></i> Đang đọc tệp và trích xuất cấu trúc...
+          </span>
+          <span id="loadingPercentText" class="text-brand-400 font-mono">10%</span>
         </div>
-        <div>
-          <p id="loadingStatusText" class="text-xs sm:text-sm font-bold text-white">
-            Đang phân tích cấu trúc ngữ nghĩa & trực quan hóa...
-          </p>
-          <p id="loadingDetailStep" class="text-[11px] text-brand-300 mt-1 animate-pulse">
-            Đang bóc tách các thực thể và luận điểm cốt lõi...
-          </p>
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+          <div id="loadingProgressBar" class="bg-gradient-to-r from-brand-500 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
         </div>
-        <!-- Animated Progress Bar -->
-        <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden">
-          <div id="loadingProgressBar" class="bg-gradient-to-r from-brand-600 via-indigo-500 to-cyanic-400 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
-        </div>
-        <div class="flex justify-between items-center text-[10px] text-slate-400">
-          <span id="loadingPercentText">15%</span>
-          <span id="loadingEstimatedTime">Ước tính: ~5 giây</span>
+        <div class="flex items-center justify-between text-[11px] text-slate-500">
+          <span id="loadingEstimatedTime">Ước tính: ~8 giây</span>
+          <span>DocuMind Semantic Engine</span>
         </div>
       </div>
     </section>
 
+    <!-- DASHBOARD RESULTS SECTION -->
     <div id="analysisDashboard" class="hidden space-y-6">
 
       <!-- Action & View Switching Bar -->
@@ -483,82 +458,47 @@
             </div>
           </div>
 
-          <!-- VIEW 2: Mermaid Flowchart -->
-          <div id="viewContainer-flowchart" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px]">
-            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <!-- VIEW 2: Mermaid Flowchart with AI Segmentation -->
+          <div id="viewContainer-flowchart" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px] space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
                   <i class="fa-solid fa-arrow-progress text-cyanic-400"></i> Lưu Đồ Diễn Tiến & Nhân Quả (Flowchart)
                 </h3>
-                <p class="text-[11px] text-slate-400">Minh họa các bước logic, chuỗi nhân quả với kích thước chuẩn cân đối</p>
+                <p class="text-[11px] text-slate-400">AI bóc tách quy trình thành các phân đoạn logic nhỏ gọn, cân đối</p>
               </div>
               <div class="flex items-center gap-2 text-xs flex-wrap">
-                <!-- Flowchart Direction Options -->
-                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px]">
-                  <span class="text-slate-400 mr-1"><i class="fa-solid fa-compass"></i> Hướng:</span>
-                  <button type="button" onclick="changeFlowchartDirection('TD')" id="btnDirTD" class="px-2 py-0.5 rounded bg-cyan-600 text-white font-semibold" title="Từ trên xuống dưới">Dọc (TD)</button>
-                  <button type="button" onclick="changeFlowchartDirection('LR')" id="btnDirLR" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold" title="Từ trái sang phải">Ngang (LR)</button>
-                </div>
-                <!-- Flowchart Theme Style -->
-                <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px]">
-                  <span class="text-slate-400 mr-1"><i class="fa-solid fa-palette"></i> Kiểu:</span>
-                  <select id="flowchartStyleSelect" onchange="changeFlowchartStyle(this.value)" class="bg-transparent text-cyan-300 font-semibold focus:outline-none cursor-pointer">
-                    <option value="modern" selected>Hiện Đại (Indigo)</option>
-                    <option value="cyber">Cyber Cyan</option>
-                    <option value="emerald">Emerald Forest</option>
-                    <option value="amber">Sunset Amber</option>
-                  </select>
-                </div>
-                <!-- Flowchart Scale & Size Controls -->
                 <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800 text-[11px]">
                   <span class="text-slate-400 mr-1"><i class="fa-solid fa-magnifying-glass"></i> Cỡ:</span>
-                  <button type="button" onclick="scaleFlowchart(0.8)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold" title="Thu nhỏ sơ đồ">80%</button>
-                  <button type="button" onclick="scaleFlowchart(1.0)" class="px-2 py-0.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-semibold" title="Kích thước chuẩn vừa vặn">100%</button>
-                  <button type="button" onclick="scaleFlowchart(1.25)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold" title="Phóng to">125%</button>
+                  <button type="button" onclick="scaleFlowchart(0.8)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">80%</button>
+                  <button type="button" onclick="scaleFlowchart(1.0)" class="px-2 py-0.5 rounded bg-brand-600 hover:bg-brand-500 text-white font-semibold">100%</button>
+                  <button type="button" onclick="scaleFlowchart(1.25)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold">125%</button>
                 </div>
-                <button onclick="reRenderFlowchart()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition" title="Làm mới lại sơ đồ">
+                <button onclick="reRenderFlowchart()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
                   <i class="fa-solid fa-rotate text-cyan-400"></i> Làm Mới
                 </button>
                 <button onclick="toggleFlowchartCodeModal()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
-                  <i class="fa-solid fa-code text-brand-400"></i> Mã Mermaid
+                  <i class="fa-solid fa-code text-brand-400"></i> Sửa Mã
                 </button>
               </div>
             </div>
 
-            <!-- Flowchart Segments & Prompt Customization Bar -->
-            <div class="mb-4 space-y-3 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/90">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
-                  <i class="fa-solid fa-diagram-next text-cyan-400"></i> Các Phân Đoạn & Góc Nhìn Luồng Tri Thức:
+            <!-- Flowchart Segments Selector Bar -->
+            <div class="bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/90 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <i class="fa-solid fa-layer-group text-brand-400"></i> Chọn phân đoạn AI để vẽ sơ đồ luồng:
                 </span>
-                <span id="flowchartSegmentsCount" class="text-[11px] text-slate-400">0 phân đoạn khả dụng</span>
+                <span id="flowchartSegmentsCount" class="text-[11px] text-cyan-400">3 phân đoạn</span>
               </div>
-              
-              <!-- Segment Cards Container -->
               <div id="flowchartSegmentsList" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <!-- Rendered dynamically -->
-              </div>
-
-              <!-- Custom Flowchart Prompt Directives -->
-              <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row gap-2 items-center">
-                <div class="relative flex-1 w-full">
-                  <input type="text" id="flowchartCustomDirective" placeholder="Tạo thêm phân đoạn luồng theo ý muốn (Ví dụ: Quy trình kiểm tra chất lượng, Xử lý ngoại lệ...)"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500 placeholder:text-slate-500">
-                </div>
-                <button type="button" onclick="generateCustomSegmentFlowchart()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm whitespace-nowrap">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Sơ Đồ Phân Đoạn Này
-                </button>
-              </div>
-              
-              <div id="flowchartProgressBox" class="hidden text-xs text-cyan-300 animate-pulse flex items-center gap-2 pt-1">
-                <i class="fa-solid fa-spinner animate-spin"></i>
-                <span id="flowchartProgressDetail">Đang dựng sơ đồ theo yêu cầu riêng...</span>
+                <!-- Rendered by JS -->
               </div>
             </div>
             
-            <div id="flowchartWrapper" class="w-full bg-slate-950/80 border border-slate-800/90 rounded-2xl p-6 overflow-x-auto overflow-y-auto custom-scroll flex justify-center items-center min-h-[420px] max-h-[560px] relative">
+            <div id="flowchartWrapper" class="w-full bg-slate-950/80 border border-slate-800/90 rounded-2xl p-6 overflow-x-auto overflow-y-auto custom-scroll flex justify-center items-center min-h-[400px] max-h-[560px] relative">
               <div id="mermaidRenderArea" class="w-full max-w-md flex justify-center items-center py-2 transition-transform duration-200">
-                <!-- Injected via mermaid.render or fallback -->
+                <!-- Injected via mermaid.render -->
               </div>
               <div id="flowchartLoading" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center gap-2 text-xs text-cyanic-300">
                 <i class="fa-solid fa-circle-notch animate-spin"></i> Đang dựng sơ đồ luồng...
@@ -575,7 +515,7 @@
                   <h3 class="font-bold text-base text-white flex items-center gap-2">
                     <i class="fa-solid fa-layer-group text-cyanic-400"></i> Infographic HTML Tương Tác Đa Chiều
                   </h3>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Dynamic Web DOM • Click to Expand</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Dynamic Web DOM</span>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-0.5">Tùy biến bằng prompt riêng của bạn. Nhấp vào thẻ để mở rộng phân tích sâu, tìm kiếm từ khóa và tải file HTML độc lập.</p>
               </div>
@@ -601,7 +541,7 @@
             <div class="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/90 space-y-3">
               <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <i class="fa-solid fa-terminal text-cyan-400"></i> Prompt Tùy Biến Riêng Của Bạn (Nhập yêu cầu tự do, ý tưởng hoặc dán prompt ngoài):
+                  <i class="fa-solid fa-terminal text-cyan-400"></i> Prompt Tùy Biến Riêng Của Bạn:
                 </label>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] text-slate-400">Bố Cục:</span>
@@ -620,11 +560,10 @@
                 <button type="button" onclick="appendPromptDirective('Tập trung làm rõ các số liệu định lượng, chi phí và tỷ lệ hiệu suất.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-800 transition">+ Số liệu & Hiệu suất</button>
                 <button type="button" onclick="appendPromptDirective('Rút gọn thành đúng 3 trụ cột lớn, diễn đạt đơn giản cho người mới.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800 transition">+ 3 Trụ Cột Tối Giản</button>
                 <button type="button" onclick="appendPromptDirective('Phân tích sâu rủi ro tiềm ẩn ở từng khâu và hành động khắc phục cụ thể.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-300 border border-slate-800 transition">+ Phân Tích Rủi Ro</button>
-                <button type="button" onclick="appendPromptDirective('Thiết kế dạng cẩm nang thực chiến gồm các bước hành động ngay trong tuần đầu.')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800 transition">+ Cẩm Nang Thực Chiến</button>
               </div>
 
               <textarea id="infographicPromptInput" rows="3" 
-                placeholder="Ví dụ: Thiết kế Infographic tập trung sâu vào khâu Logistics đầu vào và quy trình JIT, giải thích vì sao giúp tiết kiệm chi phí và các hành động cải tiến ngay..."
+                placeholder="Ví dụ: Thiết kế Infographic tập trung sâu vào các luận điểm cốt lõi, giải thích cơ chế vì sao và hành động ngay..."
                 class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono custom-scroll transition leading-relaxed"></textarea>
 
               <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -643,7 +582,6 @@
                   <button onclick="restoreDefaultPrompt()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
                     Khôi Phục Mẫu
                   </button>
-                  <!-- Primary Confirmation Button for Custom User Prompt -->
                   <button onclick="confirmAndGenerateCustomInfographic()" id="btnGenerateInfographic" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 via-indigo-600 to-brand-600 hover:opacity-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-cyan-500/25 flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-circle-check text-cyan-200"></i>
                     <span>Xác Nhận & Thiết Kế Theo Prompt Ngoài</span>
@@ -662,37 +600,27 @@
                 </div>
                 <h4 class="text-sm font-bold text-white">Chưa tạo Infographic HTML Tương Tác</h4>
                 <p class="text-xs text-slate-400 leading-relaxed">
-                  Nhấn nút <strong>"Tạo Infographic Tương Tác"</strong> để AI tổng hợp tài liệu thành một giao diện Infographic động gồm các thẻ có thể nhấp mở rộng, theo dõi tiến độ và tải file HTML độc lập.
+                  Nhấn nút <strong>"Xác Nhận & Thiết Kế Theo Prompt Ngoài"</strong> để AI tổng hợp thành giao diện Infographic động gồm các thẻ mở rộng.
                 </p>
-                <div class="pt-2">
-                  <button onclick="generateInteractiveInfographic()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1.5">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Dựng Ngay Bằng Bố Cục Mẫu
-                  </button>
-                </div>
               </div>
 
-              <!-- Loading Indicator -->
-              <div id="infographicLoading" class="hidden text-center py-14 space-y-4 m-auto max-w-sm w-full">
+              <!-- Loading Indicator with Progress -->
+              <div id="infographicLoading" class="hidden text-center py-16 space-y-4 m-auto max-w-md w-full">
                 <div class="inline-block relative">
                   <div class="w-14 h-14 rounded-full border-4 border-slate-700 border-t-cyan-400 animate-spin"></div>
                   <i class="fa-solid fa-layer-group absolute inset-0 m-auto text-cyan-300 text-sm flex items-center justify-center"></i>
                 </div>
-                <div>
-                  <p class="text-sm font-bold text-white">AI đang cấu trúc Infographic HTML tương tác...</p>
-                  <p id="infographicDetailStep" class="text-xs text-cyan-300 mt-1 animate-pulse">Đang bóc tách phân tầng kiến thức...</p>
+                <div class="space-y-1">
+                  <p id="infographicDetailStep" class="text-xs font-semibold text-cyan-300">Đang tiếp nhận và phân tích prompt...</p>
+                  <p id="infographicEstimatedTime" class="text-[11px] text-slate-500">Ước tính: ~7 giây</p>
                 </div>
-                <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden">
-                  <div id="infographicProgressBar" class="bg-gradient-to-r from-cyan-500 to-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 15%"></div>
-                </div>
-                <div class="flex justify-between items-center text-[10px] text-slate-400">
-                  <span id="infographicPercentText">15%</span>
-                  <span id="infographicEstimatedTime">Ước tính: ~5 giây</span>
+                <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                  <div id="infographicProgressBar" class="bg-gradient-to-r from-cyan-500 to-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width: 15%"></div>
                 </div>
               </div>
 
               <!-- Interactive Result Area -->
               <div id="infographicResultBox" class="hidden w-full space-y-5">
-                <!-- Toolbar for the Interactive Infographic -->
                 <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
                   <div class="flex items-center gap-2">
                     <div class="relative">
@@ -710,16 +638,15 @@
                   </div>
 
                   <div class="flex items-center gap-2">
-                    <button onclick="exportStandaloneInteractiveHtml()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Tải file .html mở được độc lập trên mọi thiết bị">
+                    <button onclick="exportStandaloneInteractiveHtml()" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Tải file .html mở được độc lập">
                       <i class="fa-solid fa-file-code"></i> <span>Tải File .HTML Độc Lập</span>
                     </button>
-                    <button onclick="copyInteractiveHtmlCode()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition" title="Sao chép toàn bộ mã HTML vào clipboard">
+                    <button onclick="copyInteractiveHtmlCode()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition">
                       <i class="fa-regular fa-copy"></i> <span class="hidden sm:inline">Sao Chép Mã HTML</span>
                     </button>
                   </div>
                 </div>
 
-                <!-- Dynamic Injected Interactive Canvas -->
                 <div id="interactiveCanvasMount" class="w-full">
                   <!-- Injected via renderInteractiveHtmlInfographic() -->
                 </div>
@@ -746,7 +673,7 @@
             </div>
           </div>
 
-          <!-- VIEW 4: Full Formatted Text Summary -->
+          <!-- VIEW 5: Full Formatted Text Summary -->
           <div id="viewContainer-summary" class="hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl min-h-[500px]">
             <div class="mb-4 flex items-center justify-between">
               <h3 class="font-bold text-base text-white flex items-center gap-2">
@@ -791,7 +718,7 @@
 
             <!-- Chat Input -->
             <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
-              <input type="text" id="qaInput" placeholder="Ví dụ: Ý chính ở chương 2 là gì?..." onkeydown="if(event.key==='Enter') sendQAMessage()"
+              <input type="text" id="qaInput" placeholder="Ví dụ: Ý chính ở phần 2 là gì?..." onkeydown="if(event.key==='Enter') sendQAMessage()"
                 class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
               <button onclick="sendQAMessage()" class="p-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs transition">
                 <i class="fa-solid fa-paper-plane"></i>
@@ -807,12 +734,14 @@
 
   </main>
 
+  <!-- MODALS -->
+
   <!-- API Key Modal -->
   <div id="apiKeyModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="font-bold text-base text-white flex items-center gap-2">
-          <i class="fa-solid fa-key text-amber-400"></i> Cấu hình Gemini API
+          <i class="fa-solid fa-key text-amber-400"></i> Cấu hình Gemini API Key
         </h3>
         <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-white p-1">
           <i class="fa-solid fa-xmark text-lg"></i>
@@ -820,7 +749,7 @@
       </div>
 
       <p class="text-xs text-slate-300 leading-relaxed">
-        Nhập khóa API Google Gemini cá nhân của bạn (tùy chọn). Khóa API được lưu an toàn tại trình duyệt để phân tích tài liệu chuyên sâu hơn.
+        Nhập khóa API Google Gemini cá nhân của bạn (tùy chọn). Khóa API chỉ được lưu an toàn tại <strong>localStorage</strong> của trình duyệt, không bao giờ gửi lên Firestore hay server nào.
       </p>
 
       <div>
@@ -834,7 +763,7 @@
           Đóng
         </button>
         <button onclick="saveApiKey()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">
-          Lưu Cấu Hình
+          Lưu Khóa API
         </button>
       </div>
     </div>
@@ -853,7 +782,7 @@
       </div>
 
       <p class="text-xs text-slate-300 leading-relaxed">
-        Bạn có thể trực tiếp sửa mã cấu trúc Mermaid dưới đây và nhấn <strong>Cập Nhật Sơ Đồ</strong> để vẽ lại:
+        Bạn có thể trực tiếp sửa mã cấu trúc Mermaid dưới đây và nhấn <strong>Cập Nhật Sơ Đồ</strong>:
       </p>
 
       <textarea id="flowchartRawCodeInput" rows="8" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-cyan-300 font-mono custom-scroll leading-relaxed focus:outline-none focus:border-brand-500"></textarea>
@@ -890,12 +819,13 @@
           Hủy
         </button>
         <button onclick="saveCustomTemplate()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md">
-          Lưu Mẫu Này
+          Lưu Lên Đám Mây
         </button>
       </div>
     </div>
   </div>
 
+  <!-- AUTH MODAL (Login / Register / Upgrade Guest) -->
   <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-5 relative overflow-hidden">
       <div class="absolute -top-24 -right-24 w-52 h-52 bg-brand-600/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -908,7 +838,7 @@
           </div>
           <div>
             <h3 id="authModalTitle" class="font-extrabold text-base text-white">Đăng Nhập Tài Khoản</h3>
-            <p class="text-[11px] text-slate-400">Đồng bộ lịch sử tóm tắt & sơ đồ tri thức</p>
+            <p id="authModalSubtitle" class="text-[11px] text-slate-400">Đồng bộ lịch sử tóm tắt & sơ đồ tri thức</p>
           </div>
         </div>
         <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition">
@@ -917,7 +847,7 @@
       </div>
 
       <!-- Auth Switch Tabs -->
-      <div class="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs font-semibold relative z-10">
+      <div id="authTabsContainer" class="flex bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs font-semibold relative z-10">
         <button type="button" id="tabAuthLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm">
           Đăng Nhập
         </button>
@@ -926,9 +856,28 @@
         </button>
       </div>
 
+      <!-- Google Sign In Quick Button -->
+      <div class="relative z-10">
+        <button type="button" onclick="handleGoogleSignIn()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/90 text-white text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-2.5 shadow-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span id="googleBtnText">Tiếp tục bằng tài khoản Google</span>
+        </button>
+      </div>
+
+      <div class="relative flex py-0.5 items-center z-10">
+        <div class="flex-grow border-t border-slate-800"></div>
+        <span class="flex-shrink mx-3 text-[10px] text-slate-500 uppercase tracking-widest font-mono">Hoặc với email</span>
+        <div class="flex-grow border-t border-slate-800"></div>
+      </div>
+
       <!-- Auth Form Container -->
       <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-3.5 relative z-10">
-        <!-- Display Name Field (for Registration) -->
+        <!-- Display Name Field (for Registration / Upgrade) -->
         <div id="fieldDisplayName" class="hidden space-y-1">
           <label class="block text-xs font-semibold text-slate-300">Họ và tên của bạn:</label>
           <div class="relative">
@@ -942,7 +891,7 @@
 
         <!-- Email Field -->
         <div class="space-y-1">
-          <label class="block text-xs font-semibold text-slate-300">Email hoặc Tên đăng nhập:</label>
+          <label class="block text-xs font-semibold text-slate-300">Địa chỉ Email:</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
               <i class="fa-regular fa-envelope"></i>
@@ -970,7 +919,7 @@
           </div>
         </div>
 
-        <!-- Confirm Password Field (for Registration) -->
+        <!-- Confirm Password Field (for Registration / Upgrade) -->
         <div id="fieldConfirmPassword" class="hidden space-y-1">
           <label class="block text-xs font-semibold text-slate-300">Xác nhận lại mật khẩu:</label>
           <div class="relative">
@@ -982,8 +931,8 @@
           </div>
         </div>
 
-        <!-- Error / Warning Message Box -->
-        <div id="authErrorMessage" class="hidden p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-rose-300 text-[11px] flex items-center gap-2">
+        <!-- Error Message Box -->
+        <div id="authErrorMessage" class="hidden p-2.5 rounded-xl bg-rose-950/50 border border-rose-500/40 text-rose-300 text-[11px] flex items-center gap-2">
           <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
           <span id="authErrorText">Thông báo lỗi</span>
         </div>
@@ -994,24 +943,11 @@
             <span id="authSubmitText">Đăng Nhập Ngay</span>
           </button>
         </div>
-
-        <!-- Google Sign-in Divider -->
-        <div class="relative flex py-2 items-center">
-          <div class="flex-grow border-t border-slate-800"></div>
-          <span class="flex-shrink mx-3 text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Hoặc</span>
-          <div class="flex-grow border-t border-slate-800"></div>
-        </div>
-
-        <!-- Google Sign-in Button -->
-        <button type="button" onclick="handleGoogleSignIn()" id="btnGoogleAuth" class="w-full py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white text-xs font-semibold border border-slate-700/80 shadow-md flex items-center justify-center gap-2.5 transition active:scale-95">
-          <i class="fa-brands fa-google text-rose-400 text-sm"></i>
-          <span>Tiếp tục với tài khoản Google</span>
-        </button>
       </form>
 
       <!-- Quick Guest Option -->
-      <div class="relative z-10 pt-2 border-t border-slate-800 text-center">
-        <p class="text-[11px] text-slate-400 mb-2">Hoặc tiếp tục nhanh không cần đăng ký:</p>
+      <div id="guestOptionWrapper" class="relative z-10 pt-2 border-t border-slate-800 text-center">
+        <p class="text-[11px] text-slate-400 mb-2">Chưa muốn đăng ký? Hãy thử nghiệm ngay:</p>
         <button type="button" onclick="continueAsGuest()" class="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-2">
           <i class="fa-solid fa-mask"></i> Tiếp tục với tư cách Khách (Ẩn danh)
         </button>
@@ -1019,7 +955,7 @@
     </div>
   </div>
 
-  <!-- History Modal with Search Bar and Rename Support -->
+  <!-- HISTORY MODAL (TỦ TÀI LIỆU CỦA TÔI) -->
   <div id="historyModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1028,8 +964,8 @@
             <i class="fa-solid fa-folder-open"></i>
           </div>
           <div>
-            <h3 class="font-extrabold text-base text-white">Tủ Tài Liệu Của Tôi</h3>
-            <p class="text-[11px] text-slate-400">Các phiên tóm tắt, sơ đồ tư duy & flowchart đã lưu trên đám mây</p>
+            <h3 class="font-extrabold text-base text-white">Tủ Tài Liệu Đã Phân Tích</h3>
+            <p class="text-[11px] text-slate-400">Được đồng bộ an toàn qua Firebase Cloud Firestore</p>
           </div>
         </div>
         <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -1037,16 +973,16 @@
         </button>
       </div>
 
-      <!-- Search Input for History -->
+      <!-- Search in History -->
       <div class="relative">
-        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-xs">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 text-xs pointer-events-none">
           <i class="fa-solid fa-magnifying-glass"></i>
         </span>
-        <input type="text" id="historySearchInput" oninput="filterUserHistoryList(this.value)" placeholder="Tìm kiếm theo tiêu đề hoặc nội dung tóm tắt..."
-          class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500 transition">
+        <input type="text" id="historySearchInput" oninput="filterUserHistory(this.value)" placeholder="Tìm kiếm theo tiêu đề hoặc nội dung tóm tắt..."
+          class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500 transition">
       </div>
 
-      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 py-1 min-h-[220px]">
+      <div id="historyListContainer" class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-1 py-1">
         <!-- Rendered via renderUserHistoryList() -->
       </div>
 
@@ -1059,29 +995,43 @@
     </div>
   </div>
 
-  <!-- Rename Document Modal -->
+  <!-- RENAME DOCUMENT MODAL -->
   <div id="renameDocModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="font-bold text-base text-white flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-cyan-400"></i> Đổi Tên Tài Liệu
         </h3>
-        <button onclick="closeRenameModal()" class="text-slate-400 hover:text-white p-1">
+        <button onclick="closeRenameDocModal()" class="text-slate-400 hover:text-white p-1">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-1">Tiêu đề mới của tài liệu:</label>
-        <input type="text" id="renameDocTitleInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-        <input type="hidden" id="renameDocIdInput">
+        <label class="block text-xs font-semibold text-slate-300 mb-1">Tiêu đề tài liệu mới:</label>
+        <input type="text" id="renameDocTitleInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeRenameModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">
-          Hủy
-        </button>
-        <button onclick="confirmRenameDocument()" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-md">
-          Lưu Tiêu Đề
-        </button>
+        <button onclick="closeRenameDocModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">Hủy</button>
+        <button onclick="submitRenameDocument()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold">Lưu Tên Mới</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM DELETE DIALOG MODAL -->
+  <div id="confirmDeleteModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center gap-3 text-rose-400">
+        <div class="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-lg flex-shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="font-bold text-base text-white">Xác Nhận Xóa Tài Liệu?</h3>
+      </div>
+      <p id="confirmDeleteMsg" class="text-xs text-slate-300 leading-relaxed">
+        Bạn có chắc muốn xóa tài liệu này khỏi Tủ lưu trữ đám mây? Thao tác này không thể hoàn tác.
+      </p>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeConfirmDeleteModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-300 hover:bg-slate-800">Hủy Bỏ</button>
+        <button onclick="executeDeleteDocument()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold">Xóa Vĩnh Viễn</button>
       </div>
     </div>
   </div>
@@ -1089,50 +1039,54 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Safe Global Stubs to prevent race-condition errors between module and classic scripts -->
+  <!-- Safe Global Stubs to prevent classic script race condition -->
   <script>
     window.syncAuthStateWithUi = function() {};
     window.syncHistoryFromCloud = function() {};
     window.syncTemplatesFromCloud = function() {};
+    window.syncSettingsFromCloud = function() {};
   </script>
 
+  <!-- FIREBASE MODULE SDK (MODULAR v11) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { 
       getAuth, 
-      signInAnonymously, 
+      createUserWithEmailAndPassword, 
       signInWithEmailAndPassword, 
-      createUserWithEmailAndPassword,
-      signInWithPopup,
-      GoogleAuthProvider,
-      updateProfile,
-      linkWithCredential,
-      EmailAuthProvider,
-      sendPasswordResetEmail,
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      signInAnonymously, 
+      linkWithCredential, 
+      EmailAuthProvider, 
       onAuthStateChanged, 
-      signOut 
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+      signOut, 
+      sendPasswordResetEmail,
+      updateProfile 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { 
       getFirestore, 
       doc, 
       setDoc, 
-      getDoc,
-      updateDoc,
+      getDoc, 
       deleteDoc, 
+      updateDoc, 
       onSnapshot, 
-      collection,
+      collection, 
       serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Cấu hình Firebase Web App
-    // Nếu bạn đã có Firebase Project, hãy thay thế các thông tin bên dưới bằng cấu hình của bạn từ Firebase Console!
-    const firebaseConfig = window.__firebase_config ? JSON.parse(window.__firebase_config) : {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+    /* ==========================================================
+       FIREBASE CONFIGURATION (CẤU HÌNH DỰ ÁN DOCUMIND CỦA BẠN)
+       ========================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDEvmlFkd5wePsGt3egiOdbqjxCGpvS0EE",
+      authDomain: "documind-bb044.firebaseapp.com",
+      projectId: "documind-bb044",
+      storageBucket: "documind-bb044.firebasestorage.app",
+      messagingSenderId: "22275378959",
+      appId: "1:22275378959:web:760c17f40bcc91726f787a",
+      measurementId: "G-Y7CEDTXKCE"
     };
 
     let app = null;
@@ -1142,12 +1096,7 @@
     let unsubTemplates = null;
     let unsubSettings = null;
 
-    const isFirebaseConfigured = firebaseConfig && 
-                                firebaseConfig.apiKey && 
-                                firebaseConfig.apiKey !== "YOUR_API_KEY" && 
-                                !firebaseConfig.apiKey.includes("YOUR_");
-
-    function updateCloudSyncBadge(status, text) {
+    function updateSyncBadge(status, text) {
       const badge = document.getElementById('cloudSyncBadge');
       const icon = document.getElementById('cloudSyncIcon');
       const label = document.getElementById('cloudSyncText');
@@ -1159,250 +1108,259 @@
         label.innerText = text || 'Đang đồng bộ...';
       } else if (status === 'error') {
         icon.className = 'fa-solid fa-cloud-slash text-rose-400';
-        label.innerText = text || 'Chế độ ngoại tuyến';
+        label.innerText = text || 'Ngoại tuyến';
       } else {
         icon.className = 'fa-solid fa-cloud-check text-emerald-400';
-        label.innerText = text || 'Đám mây đã kết nối';
+        label.innerText = text || 'Đám mây kết nối';
       }
     }
 
     try {
-      if (isFirebaseConfigured) {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
 
-        updateCloudSyncBadge('synced', 'Đám mây đã sẵn sàng');
+      // Listen for Authentication state across reloads (F5)
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          window.documindUser = {
+            uid: user.uid,
+            isAnonymous: user.isAnonymous,
+            displayName: user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : (user.email?.split('@')[0] || 'Người dùng')),
+            email: user.email || (user.isAnonymous ? 'guest@documind.cloud' : '')
+          };
 
-        // Lắng nghe trạng thái đăng nhập bền vững
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            const uid = user.uid;
-            window.documindUser = {
-              uid: uid,
-              isAnonymous: user.isAnonymous,
-              displayName: user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : (user.email?.split('@')[0] || 'Học Viên')),
-              email: user.email || (user.isAnonymous ? 'Khách Ẩn Danh' : 'user@documind.cloud')
-            };
-
-            // Lưu hoặc cập nhật hồ sơ người dùng trong Firestore: users/{uid}
-            try {
-              const userRef = doc(db, 'users', uid);
-              await setDoc(userRef, {
-                uid: uid,
-                displayName: window.documindUser.displayName,
-                email: user.email || '',
-                isAnonymous: user.isAnonymous,
-                lastLoginAt: Date.now()
-              }, { merge: true });
-            } catch (err) {
-              console.warn("Could not sync user profile doc:", err);
+          // Update guest banner visibility
+          const guestBanner = document.getElementById('guestWarningBanner');
+          if (guestBanner) {
+            if (user.isAnonymous) {
+              guestBanner.classList.remove('hidden');
+            } else {
+              guestBanner.classList.add('hidden');
             }
+          }
 
-            // Hủy listener cũ trước khi gắn listener mới
-            if (unsubHistory) unsubHistory();
-            if (unsubTemplates) unsubTemplates();
-            if (unsubSettings) unsubSettings();
+          // Detach previous listeners
+          if (unsubHistory) unsubHistory();
+          if (unsubTemplates) unsubTemplates();
+          if (unsubSettings) unsubSettings();
 
-            // 1. Lắng nghe Tủ tài liệu thời gian thực: users/{uid}/documents
-            const docsColRef = collection(db, 'users', uid, 'documents');
-            unsubHistory = onSnapshot(docsColRef, (snapshot) => {
-              const loadedDocs = [];
-              snapshot.forEach((docSnap) => {
-                const item = docSnap.data();
-                item.id = docSnap.id;
-                if (item.parsedDataJson && !item.parsedData) {
-                  try { item.parsedData = JSON.parse(item.parsedDataJson); } catch (e) { item.parsedData = null; }
-                }
-                loadedDocs.push(item);
-              });
-              // Sắp xếp tài liệu mới nhất lên đầu
-              loadedDocs.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
-              window.syncHistoryFromCloud(loadedDocs);
-              updateCloudSyncBadge('synced', 'Đã đồng bộ tài liệu');
-            }, (error) => {
-              console.error("Firestore history sync error:", error);
-              updateCloudSyncBadge('error', 'Lỗi đồng bộ tài liệu');
-            });
-
-            // 2. Lắng nghe Mẫu Prompt: users/{uid}/promptTemplates
-            const templatesColRef = collection(db, 'users', uid, 'promptTemplates');
-            unsubTemplates = onSnapshot(templatesColRef, (snapshot) => {
-              const loadedTemplates = [];
-              snapshot.forEach((docSnap) => {
-                const item = docSnap.data();
-                item.id = docSnap.id;
-                loadedTemplates.push(item);
-              });
-              loadedTemplates.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-              window.syncTemplatesFromCloud(loadedTemplates);
-            }, (error) => {
-              console.warn("Templates sync error:", error);
-            });
-
-            // 3. Lắng nghe Cài đặt giao diện: users/{uid}/settings
-            const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
-            unsubSettings = onSnapshot(settingsDocRef, (docSnap) => {
-              if (docSnap.exists()) {
-                const st = docSnap.data();
-                if (typeof window.syncSettingsFromCloud === 'function') {
-                  window.syncSettingsFromCloud(st);
+          // Listen for user documents: users/{uid}/documents
+          const historyCol = collection(db, 'users', user.uid, 'documents');
+          unsubHistory = onSnapshot(historyCol, (snapshot) => {
+            const docs = [];
+            snapshot.forEach((d) => {
+              const data = d.data();
+              if (data.parsedDataJson) {
+                try {
+                  data.parsedData = JSON.parse(data.parsedDataJson);
+                } catch(e) {
+                  data.parsedData = null;
                 }
               }
-            }, (error) => {
-              console.warn("Settings sync error:", error);
+              docs.push(data);
             });
+            // Sort descending by creation date in memory
+            docs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            window.syncHistoryFromCloud(docs);
+            updateSyncBadge('synced', 'Đã đồng bộ Tủ tài liệu');
+          }, (err) => {
+            console.warn("Firestore history sync warning:", err);
+            updateSyncBadge('error', 'Lỗi đồng bộ lịch sử');
+          });
 
-            if (typeof window.syncAuthStateWithUi === 'function') {
-              window.syncAuthStateWithUi();
+          // Listen for prompt templates: users/{uid}/promptTemplates
+          const templatesCol = collection(db, 'users', user.uid, 'promptTemplates');
+          unsubTemplates = onSnapshot(templatesCol, (snapshot) => {
+            const tpls = [];
+            snapshot.forEach((d) => {
+              tpls.push(d.data());
+            });
+            tpls.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+            window.syncTemplatesFromCloud(tpls);
+          }, (err) => {
+            console.warn("Firestore templates sync warning:", err);
+          });
+
+          // Listen for user settings: users/{uid}/settings/general
+          const settingsRef = doc(db, 'users', user.uid, 'settings', 'general');
+          unsubSettings = onSnapshot(settingsRef, (docSnap) => {
+            if (docSnap.exists()) {
+              window.syncSettingsFromCloud(docSnap.data());
             }
-          } else {
-            // Chưa đăng nhập: Tự động khởi tạo phiên Khách Ẩn Danh
-            try {
-              await signInAnonymously(auth);
-            } catch (err) {
-              console.warn("Anonymous sign-in error:", err);
-            }
+          }, (err) => {
+            console.warn("Settings sync warning:", err);
+          });
+
+          if (typeof window.syncAuthStateWithUi === 'function') {
+            window.syncAuthStateWithUi();
           }
-        });
+        } else {
+          // If no user is logged in, automatically start anonymous session to ensure smooth first experience
+          try {
+            await signInAnonymously(auth);
+          } catch(err) {
+            console.warn("Anonymous auto-signin failed:", err);
+          }
+        }
+      });
 
-      } else {
-        console.warn("Chưa cấu hình Firebase Project API key. Đang chạy chế độ LocalStorage an toàn.");
-        updateCloudSyncBadge('error', 'Chế độ Local (Chưa nạp Firebase)');
-      }
     } catch (err) {
-      console.warn("Firebase initialization error:", err);
-      updateCloudSyncBadge('error', 'Ngoại tuyến');
+      console.warn("Firebase Init failed (Check your config):", err);
+      updateSyncBadge('error', 'Chưa nạp Firebase Config');
     }
 
-    // Các hàm giao tiếp Cloud xuất ra Window
-    window.cloudAuthLogin = async function(email, password) {
-      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
-      return await signInWithEmailAndPassword(auth, email, password);
+    // Exposed Cloud Methods attached to window
+    window.firebaseRegisterWithEmail = async function(email, password, displayName) {
+      if (!auth) throw new Error("Firebase chưa được khởi tạo!");
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName && cred.user) {
+        await updateProfile(cred.user, { displayName });
+      }
+      // Save profile to users/{uid}
+      if (db && cred.user) {
+        await setDoc(doc(db, 'users', cred.user.uid), {
+          uid: cred.user.uid,
+          email: email,
+          displayName: displayName || email.split('@')[0],
+          isAnonymous: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+      return cred.user;
     };
 
-    window.cloudAuthRegister = async function(email, password, displayName) {
-      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
-      
-      // Nếu đang là tài khoản khách ẩn danh, nâng cấp tài khoản để giữ nguyên dữ liệu!
-      if (auth.currentUser && auth.currentUser.isAnonymous) {
-        const credential = EmailAuthProvider.credential(email, password);
-        try {
-          const res = await linkWithCredential(auth.currentUser, credential);
-          if (displayName && res.user) {
-            await updateProfile(res.user, { displayName });
-          }
-          return res;
-        } catch (linkErr) {
-          if (linkErr.code === 'auth/credential-already-in-use' || linkErr.code === 'auth/email-already-in-use') {
-            // Nếu email đã có tài khoản khác, đăng nhập trực tiếp bằng email đó
-            return await signInWithEmailAndPassword(auth, email, password);
-          }
-          throw linkErr;
-        }
-      }
-
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      if (displayName && res.user) {
-        await updateProfile(res.user, { displayName });
-      }
-      return res;
+    window.firebaseLoginWithEmail = async function(email, password) {
+      if (!auth) throw new Error("Firebase chưa được khởi tạo!");
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      return cred.user;
     };
 
-    window.cloudAuthGoogle = async function() {
-      if (!auth) throw new Error("Chưa cấu hình Firebase. Vui lòng cấu hình firebaseConfig trước!");
+    window.firebaseLoginWithGoogle = async function() {
+      if (!auth) throw new Error("Firebase chưa được khởi tạo!");
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
       
-      // Nếu là khách, liên kết tài khoản Google để giữ dữ liệu
+      // If current user is anonymous, link account so they keep their documents
       if (auth.currentUser && auth.currentUser.isAnonymous) {
-        try {
-          return await signInWithPopup(auth, provider);
-        } catch (err) {
-          console.warn("Google link failed, falling back to sign-in:", err);
-          return await signInWithPopup(auth, provider);
+        const result = await linkWithCredential(auth.currentUser, provider);
+        const user = result.user;
+        if (db && user) {
+          await setDoc(doc(db, 'users', user.uid), {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || user.email?.split('@')[0],
+            isAnonymous: false,
+            updatedAt: Date.now()
+          }, { merge: true });
         }
+        return user;
       }
-      return await signInWithPopup(auth, provider);
+
+      const res = await signInWithPopup(auth, provider);
+      const user = res.user;
+      if (db && user) {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0],
+          isAnonymous: false,
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+      return user;
     };
 
-    window.cloudAuthSignOut = async function() {
+    window.firebaseUpgradeAnonymousAccount = async function(email, password, displayName) {
+      if (!auth || !auth.currentUser) throw new Error("Không có phiên khách để nâng cấp!");
+      const credential = EmailAuthProvider.credential(email, password);
+      const linkResult = await linkWithCredential(auth.currentUser, credential);
+      const user = linkResult.user;
+
+      if (displayName) {
+        await updateProfile(user, { displayName });
+      }
+
+      if (db && user) {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: email,
+          displayName: displayName || email.split('@')[0],
+          isAnonymous: false,
+          updatedAt: Date.now()
+        }, { merge: true });
+      }
+      return user;
+    };
+
+    window.firebaseSendPasswordReset = async function(email) {
+      if (!auth) throw new Error("Firebase chưa được khởi tạo!");
+      await sendPasswordResetEmail(auth, email);
+    };
+
+    window.firebaseSignOut = async function() {
       if (!auth) return;
       await signOut(auth);
-      // Tạo lại phiên khách mới sau khi đăng xuất
-      try {
-        await signInAnonymously(auth);
-      } catch (e) {
-        console.warn("Post-signout anonymous error:", e);
-      }
-    };
-
-    window.cloudAuthResetPassword = async function(email) {
-      if (!auth) throw new Error("Chưa cấu hình Firebase!");
-      return await sendPasswordResetEmail(auth, email);
+      // Auto-enter guest mode after sign out
+      await signInAnonymously(auth);
     };
 
     window.cloudSaveDocument = async function(docItem) {
       if (!db || !auth || !auth.currentUser) return;
-      updateCloudSyncBadge('syncing', 'Đang lưu lên đám mây...');
+      updateSyncBadge('syncing', 'Đang lưu tài liệu...');
       try {
         const uid = auth.currentUser.uid;
-        const docId = docItem.id || ('doc_' + Date.now());
-        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
+        const targetRef = doc(db, 'users', uid, 'documents', docItem.id);
         
-        // Cắt giảm nội dung gốc để không vượt giới hạn Firestore 1MB
+        // Truncate raw content to ~500KB to stay safely below Firestore 1MB limits
         const safeRawText = (docItem.text || '').substring(0, 450000);
 
         const dataToSave = {
-          id: docId,
+          id: docItem.id,
           title: docItem.title || 'Tài liệu không tên',
-          source: docItem.source || 'file',
+          sourceType: docItem.sourceType || 'paste',
+          rawText: safeRawText,
           summary: docItem.summary || '',
+          keyTakeaways: docItem.parsedData?.keyTakeaways || [],
+          mermaidMindmap: docItem.parsedData?.mindmapData ? JSON.stringify(docItem.parsedData.mindmapData) : '',
+          mermaidFlowchart: docItem.mermaidCode || docItem.parsedData?.mermaidFlowchart || '',
+          infographicHtml: docItem.infographicHtml || '',
           words: docItem.words || 0,
-          text: safeRawText,
-          parsedDataJson: docItem.parsedData ? JSON.stringify(docItem.parsedData) : '',
-          mermaidFlowchart: docItem.mermaidFlowchart || (docItem.parsedData?.mermaidFlowchart || ''),
-          interactiveHtml: docItem.interactiveHtml || '',
+          timestamp: docItem.timestamp || '',
           createdAt: docItem.createdAt || Date.now(),
-          updatedAt: Date.now()
+          updatedAt: Date.now(),
+          parsedDataJson: docItem.parsedData ? JSON.stringify(docItem.parsedData) : ''
         };
-
-        await setDoc(targetDocRef, dataToSave, { merge: true });
-        updateCloudSyncBadge('synced', 'Đã lưu tài liệu');
-        return docId;
+        await setDoc(targetRef, dataToSave, { merge: true });
+        updateSyncBadge('synced', 'Đã lưu lên Đám mây');
       } catch (err) {
-        console.error("Error saving document to Firestore:", err);
-        updateCloudSyncBadge('error', 'Lỗi lưu đám mây');
-        throw err;
-      }
-    };
-
-    window.cloudUpdateDocumentField = async function(docId, fields) {
-      if (!db || !auth || !auth.currentUser || !docId) return;
-      try {
-        const uid = auth.currentUser.uid;
-        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
-        await updateDoc(targetDocRef, {
-          ...fields,
-          updatedAt: Date.now()
-        });
-        updateCloudSyncBadge('synced', 'Đã cập nhật tài liệu');
-      } catch (err) {
-        console.error("Error updating document field:", err);
+        console.error("Save doc error:", err);
+        updateSyncBadge('error', 'Lỗi lưu tài liệu');
       }
     };
 
     window.cloudDeleteDocument = async function(docId) {
-      if (!db || !auth || !auth.currentUser || !docId) return;
-      updateCloudSyncBadge('syncing', 'Đang xóa...');
+      if (!db || !auth || !auth.currentUser) return;
+      updateSyncBadge('syncing', 'Đang xóa tài liệu...');
       try {
         const uid = auth.currentUser.uid;
-        const targetDocRef = doc(db, 'users', uid, 'documents', docId);
-        await deleteDoc(targetDocRef);
-        updateCloudSyncBadge('synced', 'Đã xóa tài liệu');
+        await deleteDoc(doc(db, 'users', uid, 'documents', docId));
+        updateSyncBadge('synced', 'Đã xóa tài liệu');
+      } catch(err) {
+        console.error("Delete doc error:", err);
+      }
+    };
+
+    window.cloudUpdateDocTitle = async function(docId, newTitle) {
+      if (!db || !auth || !auth.currentUser) return;
+      try {
+        const uid = auth.currentUser.uid;
+        await updateDoc(doc(db, 'users', uid, 'documents', docId), {
+          title: newTitle,
+          updatedAt: Date.now()
+        });
       } catch (err) {
-        console.error("Error deleting document from Firestore:", err);
-        updateCloudSyncBadge('error', 'Lỗi xóa tài liệu');
+        console.error("Update title error:", err);
       }
     };
 
@@ -1410,54 +1368,44 @@
       if (!db || !auth || !auth.currentUser) return;
       try {
         const uid = auth.currentUser.uid;
-        const tplId = templateItem.id || ('tpl_' + Date.now());
-        const tplDocRef = doc(db, 'users', uid, 'promptTemplates', tplId);
-        await setDoc(tplDocRef, {
-          id: tplId,
+        await setDoc(doc(db, 'users', uid, 'promptTemplates', templateItem.id), {
+          id: templateItem.id,
           name: templateItem.name,
           layout: templateItem.layout || 'bento',
           prompt: templateItem.prompt || '',
-          createdAt: templateItem.createdAt || Date.now()
+          createdAt: templateItem.createdAt || Date.now(),
+          updatedAt: Date.now()
         });
       } catch (err) {
-        console.error("Error saving template to Firestore:", err);
+        console.error("Save template error:", err);
       }
     };
 
     window.cloudDeleteTemplate = async function(templateId) {
-      if (!db || !auth || !auth.currentUser || !templateId) return;
-      try {
-        const uid = auth.currentUser.uid;
-        const tplDocRef = doc(db, 'users', uid, 'promptTemplates', templateId);
-        await deleteDoc(tplDocRef);
-      } catch (err) {
-        console.error("Error deleting template from Firestore:", err);
-      }
-    };
-
-    window.cloudSaveSettings = async function(settingsObj) {
       if (!db || !auth || !auth.currentUser) return;
       try {
         const uid = auth.currentUser.uid;
-        const settingsDocRef = doc(db, 'users', uid, 'settings', 'preferences');
-        // KHÔNG BAO GIỜ lưu Gemini API key lên Cloud theo đúng yêu cầu bảo mật
-        const safeSettings = {
-          infographicLayout: settingsObj.infographicLayout || 'bento',
-          infographicTheme: settingsObj.infographicTheme || 'indigo',
-          flowchartScale: settingsObj.flowchartScale || 1.0,
-          updatedAt: Date.now()
-        };
-        await setDoc(settingsDocRef, safeSettings, { merge: true });
+        await deleteDoc(doc(db, 'users', uid, 'promptTemplates', templateId));
       } catch (err) {
-        console.warn("Could not save settings to Firestore:", err);
+        console.error("Delete template error:", err);
       }
     };
 
-    window.cloudAuth = auth;
-    window.cloudDb = db;
-    window.isFirebaseConfigured = isFirebaseConfigured;
+    window.cloudSaveUserSettings = async function(settings) {
+      if (!db || !auth || !auth.currentUser) return;
+      try {
+        const uid = auth.currentUser.uid;
+        await setDoc(doc(db, 'users', uid, 'settings', 'general'), {
+          ...settings,
+          updatedAt: Date.now()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Save settings error:", err);
+      }
+    };
   </script>
 
+  <!-- APPLICATION CORE SCRIPT -->
   <script>
     /* ==========================================================
        1. GLOBAL STATE & CONFIGURATION
@@ -1465,12 +1413,12 @@
     const appState = {
       activeInputTab: 'upload',
       activeView: 'mindmap',
+      currentDocId: null,
       currentDocText: '',
       currentDocTitle: '',
-      currentDocId: null,
-      activeDocSource: 'file',
+      currentSourceType: 'paste',
       parsedData: null,
-      customApiKey: '',
+      customApiKey: localStorage.getItem('documind_gemini_api_key') || '',
       radarChartInstance: null,
       barChartInstance: null,
       mindmapZoom: null,
@@ -1480,17 +1428,17 @@
       flowchartSegments: [],
       selectedSegmentId: null,
       lastUsedInfographicPrompt: '',
-      // User authentication state
       currentUser: null,
       userHistory: [],
-      historySearchKeyword: '',
+      filteredHistory: [],
       authTab: 'login',
-      // Interactive Infographic state
+      isUpgradingGuest: false,
+      docPendingDeleteId: null,
+      docPendingRenameId: null,
       infographicLayout: 'bento',
       infographicTheme: 'indigo',
       interactiveData: null,
       checkedKeyPoints: new Set(),
-      // Default built-in prompt templates
       defaultPromptTemplates: [
         {
           id: 'tpl_bento',
@@ -1521,10 +1469,9 @@
       selectedTemplateId: 'tpl_bento'
     };
 
-    // Initialize templates with defaults
     appState.promptTemplates = [...appState.defaultPromptTemplates];
 
-    // Helper: Animated Progress Simulation with Percent & Time Remaining
+    // Helper: Animated Progress Simulation
     function createProgressTracker({ barId, percentId, timeId, detailId, steps, totalDurationSec = 8, onComplete }) {
       const progressBar = document.getElementById(barId);
       const percentText = document.getElementById(percentId);
@@ -1540,7 +1487,6 @@
         const elapsed = (now - startTime) / 1000;
         const remaining = Math.max(1, Math.ceil(totalDurationSec - elapsed));
 
-        // Advance progress smoothly up to 92%, reserving 100% for actual response
         const targetPercent = Math.min(92, Math.round((elapsed / totalDurationSec) * 90) + 5);
         if (targetPercent > currentPercent) {
           currentPercent = targetPercent;
@@ -1550,7 +1496,6 @@
         if (percentText) percentText.innerText = `${currentPercent}%`;
         if (timeText) timeText.innerText = `Ước tính: ~${remaining} giây`;
 
-        // Update step message based on progress
         if (detailText && steps && steps.length > 0) {
           const stepIndex = Math.min(steps.length - 1, Math.floor((currentPercent / 100) * steps.length));
           detailText.innerText = steps[stepIndex];
@@ -1576,7 +1521,7 @@
       };
     }
 
-    // Initialize Mermaid with resilient settings and compact dimensions
+    // Initialize Mermaid
     if (window.mermaid) {
       mermaid.initialize({
         startOnLoad: false,
@@ -1605,81 +1550,6 @@
       });
     }
 
-
-    function changeFlowchartDirection(dir) {
-      if (!appState.currentMermaidCode) return;
-      let code = appState.currentMermaidCode;
-      if (dir === 'LR') {
-        code = code.replace(/graph\s+TD/gi, 'graph LR').replace(/flowchart\s+TD/gi, 'flowchart LR');
-        if (!code.includes('graph LR') && !code.includes('flowchart LR')) {
-          code = 'graph LR;\n' + code.replace(/^(graph|flowchart)\s+[A-Za-z]+;?\n?/, '');
-        }
-        document.getElementById('btnDirLR').className = 'px-2 py-0.5 rounded bg-cyan-600 text-white font-semibold';
-        document.getElementById('btnDirTD').className = 'px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold';
-      } else {
-        code = code.replace(/graph\s+LR/gi, 'graph TD').replace(/flowchart\s+LR/gi, 'flowchart TD');
-        if (!code.includes('graph TD') && !code.includes('flowchart TD')) {
-          code = 'graph TD;\n' + code.replace(/^(graph|flowchart)\s+[A-Za-z]+;?\n?/, '');
-        }
-        document.getElementById('btnDirTD').className = 'px-2 py-0.5 rounded bg-cyan-600 text-white font-semibold';
-        document.getElementById('btnDirLR').className = 'px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold';
-      }
-      appState.currentMermaidCode = code;
-      renderMermaidDiagram(code);
-      showToast(`Đã đổi hướng sơ đồ luồng sang ${dir === 'LR' ? 'Ngang (LR)' : 'Dọc (TD)'}`);
-    }
-
-    function changeFlowchartStyle(styleName) {
-      if (!window.mermaid) return;
-      let themeVars = {
-        darkMode: true,
-        background: '#020617',
-        fontSize: '12px'
-      };
-      if (styleName === 'cyber') {
-        themeVars.primaryColor = '#083344';
-        themeVars.primaryTextColor = '#22d3ee';
-        themeVars.primaryBorderColor = '#06b6d4';
-        themeVars.lineColor = '#38bdf8';
-        themeVars.secondaryColor = '#0f172a';
-        themeVars.tertiaryColor = '#164e63';
-      } else if (styleName === 'emerald') {
-        themeVars.primaryColor = '#064e3b';
-        themeVars.primaryTextColor = '#6ee7b7';
-        themeVars.primaryBorderColor = '#10b981';
-        themeVars.lineColor = '#34d399';
-        themeVars.secondaryColor = '#022c22';
-        themeVars.tertiaryColor = '#047857';
-      } else if (styleName === 'amber') {
-        themeVars.primaryColor = '#451a03';
-        themeVars.primaryTextColor = '#fde68a';
-        themeVars.primaryBorderColor = '#f59e0b';
-        themeVars.lineColor = '#fbbf24';
-        themeVars.secondaryColor = '#1c1917';
-        themeVars.tertiaryColor = '#78350f';
-      } else {
-        themeVars.primaryColor = '#312e81';
-        themeVars.primaryTextColor = '#f8fafc';
-        themeVars.primaryBorderColor = '#6366f1';
-        themeVars.lineColor = '#38bdf8';
-        themeVars.secondaryColor = '#0f172a';
-        themeVars.tertiaryColor = '#1e293b';
-      }
-      try {
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: 'dark',
-          themeVariables: themeVars
-        });
-        if (appState.currentMermaidCode) {
-          renderMermaidDiagram(appState.currentMermaidCode);
-        }
-        showToast(`Đã áp dụng giao diện màu sơ đồ: ${styleName}`);
-      } catch (e) {
-        console.warn('Error changing flowchart style:', e);
-      }
-    }
-
     function scaleFlowchart(factor) {
       appState.flowchartScale = factor;
       const area = document.getElementById('mermaidRenderArea');
@@ -1687,7 +1557,7 @@
         area.style.transform = `scale(${factor})`;
         area.style.transformOrigin = 'center top';
       }
-      showToast(`Đã chỉnh kích thước sơ đồ luồng về ${Math.round(factor * 100)}%`);
+      showToast(`Đã chỉnh cỡ sơ đồ luồng về ${Math.round(factor * 100)}%`);
     }
 
     function appendPromptDirective(text) {
@@ -1699,7 +1569,7 @@
         textarea.value = text;
       }
       textarea.focus();
-      showToast("Đã bổ sung chỉ dẫn vào prompt!");
+      showToast("Đã thêm yêu cầu vào prompt!");
     }
 
     function confirmAndGenerateCustomInfographic() {
@@ -1707,26 +1577,13 @@
       const customPrompt = textarea ? textarea.value.trim() : '';
 
       if (!customPrompt) {
-        showToast("Vui lòng nhập nội dung prompt hoặc chọn một mẫu đã lưu!");
+        showToast("Vui lòng nhập nội dung prompt!");
         if (textarea) textarea.focus();
         return;
       }
 
-      showToast("AI đang tiếp nhận prompt và thiết kế Infographic theo yêu cầu...");
+      showToast("AI đang thiết kế Infographic HTML theo prompt riêng...");
       generateInteractiveInfographic();
-    }
-
-    // Load custom saved templates from localStorage if available
-    try {
-      const savedTemplates = localStorage.getItem('documind_custom_prompt_templates');
-      if (savedTemplates) {
-        const parsed = JSON.parse(savedTemplates);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          appState.promptTemplates = parsed;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not load templates from storage:", e);
     }
 
     // Configure PDF.js worker
@@ -1734,28 +1591,22 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    // Populate Infographic Templates on load
     window.addEventListener('DOMContentLoaded', () => {
       populateTemplateDropdown();
-      initLocalUserSession();
+      // If user had local templates, preserve them
+      try {
+        const saved = localStorage.getItem('documind_custom_prompt_templates');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            appState.promptTemplates = parsed;
+            populateTemplateDropdown();
+          }
+        }
+      } catch(e) {}
     });
 
-    function initLocalUserSession() {
-      if (window.documindUser) {
-        appState.currentUser = window.documindUser;
-      } else {
-        const defaultUid = 'usr_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-        appState.currentUser = {
-          uid: defaultUid,
-          displayName: 'Khách Khám Phá',
-          email: 'guest@documind.cloud',
-          isGuest: true
-        };
-      }
-      updateAuthHeaderUI();
-    }
-
-    // Cloud synchronization callbacks
+    // Cloud Synchronization callbacks from Firebase module
     window.syncAuthStateWithUi = function() {
       if (window.documindUser) {
         appState.currentUser = window.documindUser;
@@ -1766,6 +1617,7 @@
     window.syncHistoryFromCloud = function(cloudDocs) {
       if (Array.isArray(cloudDocs)) {
         appState.userHistory = cloudDocs;
+        appState.filteredHistory = cloudDocs;
         updateAuthHeaderUI();
         if (!document.getElementById('historyModal')?.classList.contains('hidden')) {
           renderUserHistoryList();
@@ -1784,19 +1636,13 @@
 
     window.syncSettingsFromCloud = function(settings) {
       if (!settings) return;
+      if (settings.infographicTheme) {
+        appState.infographicTheme = settings.infographicTheme;
+      }
       if (settings.infographicLayout) {
         appState.infographicLayout = settings.infographicLayout;
         const layoutSel = document.getElementById('infographicLayoutSelect');
         if (layoutSel) layoutSel.value = settings.infographicLayout;
-      }
-      if (settings.infographicTheme) {
-        appState.infographicTheme = settings.infographicTheme;
-      }
-      if (settings.flowchartScale) {
-        scaleFlowchart(settings.flowchartScale);
-      }
-      if (appState.interactiveData) {
-        renderInteractiveHtmlInfographic();
       }
     };
 
@@ -1805,19 +1651,9 @@
       const btnOpenAuth = document.getElementById('btnOpenAuthModal');
       const badge = document.getElementById('userProfileBadge');
       const userHistoryCount = document.getElementById('userHistoryCount');
-      const guestBanner = document.getElementById('guestReminderBanner');
 
       if (userHistoryCount) {
         userHistoryCount.innerText = (appState.userHistory || []).length;
-      }
-
-      // Quản lý hiển thị Banner nhắc nhở chế độ khách
-      if (guestBanner) {
-        if (user && user.isAnonymous) {
-          guestBanner.classList.remove('hidden');
-        } else {
-          guestBanner.classList.add('hidden');
-        }
       }
 
       if (!user) {
@@ -1826,7 +1662,6 @@
         return;
       }
 
-      // Trạng thái đã đăng nhập (cả khách lẫn tài khoản thật đều hiển thị profile badge)
       if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
       if (badge) badge.classList.remove('hidden');
 
@@ -1836,16 +1671,12 @@
       const dropEmail = document.getElementById('dropdownEmail');
       const dropUid = document.getElementById('dropdownUserId');
 
-      let dispName = user.displayName || (user.isAnonymous ? 'Khách Khám Phá' : (user.email?.split('@')[0] || 'Học Viên'));
-      if (user.isAnonymous && !dispName.includes('Khách')) {
-        dispName = 'Khách (' + (user.displayName || 'Ẩn Danh') + ')';
-      }
-
+      const dispName = user.displayName || user.email?.split('@')[0] || (user.isAnonymous ? 'Khách Khám Phá' : 'Học Viên');
       if (nameLabel) nameLabel.innerText = dispName;
       if (avatar) avatar.innerText = (dispName.trim()[0] || 'U').toUpperCase();
       if (dropFullName) dropFullName.innerText = dispName;
-      if (dropEmail) dropEmail.innerText = user.email || (user.isAnonymous ? 'Tài khoản khách tạm thời' : 'user@documind.cloud');
-      if (dropUid) dropUid.innerText = 'UID: ' + (user.uid || 'usr_unknown');
+      if (dropEmail) dropEmail.innerText = user.email || (user.isAnonymous ? 'Chế độ khách (Ẩn danh)' : 'user@documind.cloud');
+      if (dropUid) dropUid.innerText = 'UID: ' + (user.uid || '...');
     }
 
     function toggleUserDropdown() {
@@ -1853,7 +1684,6 @@
       if (menu) menu.classList.toggle('hidden');
     }
 
-    // Close dropdown on outside click
     window.addEventListener('click', (e) => {
       const badge = document.getElementById('userProfileBadge');
       const menu = document.getElementById('userDropdownMenu');
@@ -1865,21 +1695,30 @@
     function copyUserIdToClipboard() {
       const uid = appState.currentUser?.uid || '';
       if (!uid) return;
-      navigator.clipboard.writeText(uid).then(() => {
-        showToast("Đã sao chép User ID thành công!");
-      }).catch(() => {
-        const temp = document.createElement('input');
-        temp.value = uid;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand('copy');
-        document.body.removeChild(temp);
-        showToast("Đã sao chép User ID thành công!");
-      });
+      const tempInput = document.createElement('input');
+      tempInput.value = uid;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showToast("Đã sao chép User ID thành công!");
     }
 
-    function openAuthModal(tab = 'login') {
+    function openAuthModal(tab = 'login', isUpgrade = false) {
+      appState.isUpgradingGuest = isUpgrade;
       const modal = document.getElementById('authModal');
+      const guestWrapper = document.getElementById('guestOptionWrapper');
+      const googleBtnText = document.getElementById('googleBtnText');
+
+      if (guestWrapper) {
+        if (isUpgrade) guestWrapper.classList.add('hidden');
+        else guestWrapper.classList.remove('hidden');
+      }
+
+      if (googleBtnText) {
+        googleBtnText.innerText = isUpgrade ? 'Liên kết & Nâng cấp bằng Google' : 'Tiếp tục bằng tài khoản Google';
+      }
+
       if (modal) modal.classList.remove('hidden');
       switchAuthTab(tab);
     }
@@ -1889,6 +1728,7 @@
       if (modal) modal.classList.add('hidden');
       const errBox = document.getElementById('authErrorMessage');
       if (errBox) errBox.classList.add('hidden');
+      appState.isUpgradingGuest = false;
     }
 
     function switchAuthTab(tab) {
@@ -1899,12 +1739,24 @@
       const fieldConfirm = document.getElementById('fieldConfirmPassword');
       const forgotLink = document.getElementById('authForgotPwdLink');
       const title = document.getElementById('authModalTitle');
+      const subtitle = document.getElementById('authModalSubtitle');
       const submitText = document.getElementById('authSubmitText');
       const errBox = document.getElementById('authErrorMessage');
       if (errBox) errBox.classList.add('hidden');
 
-      const isAnon = appState.currentUser && appState.currentUser.isAnonymous;
+      if (appState.isUpgradingGuest) {
+        title.innerText = 'Nâng Cấp Tài Khoản Khách';
+        subtitle.innerText = 'Lưu vĩnh viễn tủ tài liệu của bạn vào tài khoản thật';
+        submitText.innerText = 'Xác Nhận Nâng Cấp';
+        btnLogin.classList.add('hidden');
+        btnRegister.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
+        if (fieldDisplay) fieldDisplay.classList.remove('hidden');
+        if (fieldConfirm) fieldConfirm.classList.remove('hidden');
+        if (forgotLink) forgotLink.classList.add('hidden');
+        return;
+      }
 
+      btnLogin.classList.remove('hidden');
       if (tab === 'login') {
         btnLogin.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
         btnRegister.className = 'flex-1 py-2 rounded-xl text-center text-slate-400 hover:text-white transition';
@@ -1912,6 +1764,7 @@
         if (fieldConfirm) fieldConfirm.classList.add('hidden');
         if (forgotLink) forgotLink.classList.remove('hidden');
         if (title) title.innerText = 'Đăng Nhập Tài Khoản';
+        if (subtitle) subtitle.innerText = 'Đồng bộ lịch sử tóm tắt & sơ đồ tri thức';
         if (submitText) submitText.innerText = 'Đăng Nhập Ngay';
       } else {
         btnRegister.className = 'flex-1 py-2 rounded-xl text-center transition bg-brand-600 text-white shadow-sm';
@@ -1919,8 +1772,9 @@
         if (fieldDisplay) fieldDisplay.classList.remove('hidden');
         if (fieldConfirm) fieldConfirm.classList.remove('hidden');
         if (forgotLink) forgotLink.classList.add('hidden');
-        if (title) title.innerText = isAnon ? 'Nâng Cấp Tài Khoản (Giữ Dữ Liệu)' : 'Tạo Tài Khoản Mới';
-        if (submitText) submitText.innerText = isAnon ? 'Xác Nhận Nâng Cấp' : 'Đăng Ký Tài Khoản';
+        if (title) title.innerText = 'Tạo Tài Khoản Mới';
+        if (subtitle) subtitle.innerText = 'Lưu trữ đám mây không giới hạn và bảo mật';
+        if (submitText) submitText.innerText = 'Đăng Ký Tài Khoản';
       }
     }
 
@@ -1937,44 +1791,34 @@
       }
     }
 
-    function translateFirebaseError(err) {
-      if (!err) return "Đã xảy ra lỗi không xác định.";
-      const code = err.code || err.message || '';
-      if (code.includes('auth/invalid-email')) return "Địa chỉ email không đúng định dạng.";
-      if (code.includes('auth/user-not-found')) return "Không tìm thấy tài khoản với email này.";
-      if (code.includes('auth/wrong-password') || code.includes('auth/invalid-credential')) return "Sai mật khẩu hoặc thông tin đăng nhập không hợp lệ.";
-      if (code.includes('auth/email-already-in-use')) return "Email này đã được sử dụng bởi một tài khoản khác.";
-      if (code.includes('auth/weak-password')) return "Mật khẩu quá yếu (yêu cầu tối thiểu 6 ký tự).";
-      if (code.includes('auth/network-request-failed')) return "Lỗi kết nối mạng! Vui lòng kiểm tra đường truyền Internet.";
-      if (code.includes('auth/popup-closed-by-user')) return "Cửa sổ đăng nhập đã bị đóng trước khi hoàn tất.";
-      if (code.includes('auth/too-many-requests')) return "Bạn đã thử quá nhiều lần. Vui lòng đợi trong giây lát rồi thử lại.";
-      return err.message || "Lỗi xử lý xác thực: " + code;
-    }
-
-    async function handleForgotPassword() {
-      const email = document.getElementById('authEmailInput')?.value.trim();
-      if (!email) {
-        showAuthError("Vui lòng nhập địa chỉ email vào ô trên để nhận liên kết khôi phục mật khẩu.");
-        return;
-      }
-      try {
-        if (typeof window.cloudAuthResetPassword === 'function') {
-          await window.cloudAuthResetPassword(email);
-          showToast(`Đã gửi email khôi phục mật khẩu tới ${email}! Vui lòng kiểm tra hộp thư.`);
-        } else {
-          showToast("Vui lòng cấu hình Firebase để sử dụng tính năng gửi email!");
-        }
-      } catch (err) {
-        showAuthError(translateFirebaseError(err));
-      }
-    }
-
     function showAuthError(msg) {
       const errBox = document.getElementById('authErrorMessage');
       const errText = document.getElementById('authErrorText');
       if (errBox && errText) {
         errText.innerText = msg;
         errBox.classList.remove('hidden');
+      }
+    }
+
+    function mapFirebaseError(errCode) {
+      switch(errCode) {
+        case 'auth/email-already-in-use':
+          return 'Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.';
+        case 'auth/invalid-email':
+          return 'Định dạng email không hợp lệ.';
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          return 'Mật khẩu hoặc email không đúng. Vui lòng kiểm tra lại.';
+        case 'auth/user-not-found':
+          return 'Không tìm thấy tài khoản tương ứng với email này.';
+        case 'auth/weak-password':
+          return 'Mật khẩu quá yếu. Vui lòng đặt tối thiểu 6 ký tự.';
+        case 'auth/popup-closed-by-user':
+          return 'Cửa sổ đăng nhập Google đã bị đóng trước khi hoàn tất.';
+        case 'auth/network-request-failed':
+          return 'Lỗi kết nối mạng. Hãy kiểm tra lại internet của bạn.';
+        default:
+          return 'Đã xảy ra lỗi: ' + (errCode || 'Vui lòng thử lại sau.');
       }
     }
 
@@ -1996,176 +1840,86 @@
         return;
       }
 
-      const origText = submitBtn ? submitBtn.innerHTML : '';
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Đang xử lý...';
-      }
+      if (submitBtn) submitBtn.disabled = true;
 
       try {
-        if (appState.authTab === 'register') {
+        if (appState.isUpgradingGuest) {
           if (password !== confirmPwd) {
             showAuthError("Mật khẩu xác nhận không trùng khớp!");
+            if (submitBtn) submitBtn.disabled = false;
             return;
           }
-
-          if (typeof window.cloudAuthRegister === 'function') {
-            await window.cloudAuthRegister(email, password, displayName);
-            closeAuthModal();
-            showToast(`Đăng ký thành công! Chào mừng ${displayName || email.split('@')[0]}`);
-          } else {
-            // Local fallback
-            const newUser = {
-              uid: 'usr_' + Date.now().toString(36),
-              displayName: displayName || email.split('@')[0],
-              email: email,
-              isAnonymous: false
-            };
-            appState.currentUser = newUser;
-            updateAuthHeaderUI();
-            closeAuthModal();
-            showToast(`Đăng ký chế độ Local thành công!`);
+          await window.firebaseUpgradeAnonymousAccount(email, password, displayName);
+          closeAuthModal();
+          showToast(`Đã nâng cấp tài khoản thành công! Toàn bộ tài liệu của bạn đã được giữ nguyên.`);
+        } else if (appState.authTab === 'register') {
+          if (password !== confirmPwd) {
+            showAuthError("Mật khẩu xác nhận không trùng khớp!");
+            if (submitBtn) submitBtn.disabled = false;
+            return;
           }
+          await window.firebaseRegisterWithEmail(email, password, displayName);
+          closeAuthModal();
+          showToast(`Đăng ký thành công! Chào mừng ${displayName || email}`);
         } else {
-          // Login
-          if (typeof window.cloudAuthLogin === 'function') {
-            await window.cloudAuthLogin(email, password);
-            closeAuthModal();
-            showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
-          } else {
-            const loggedUser = {
-              uid: 'usr_' + Date.now().toString(36),
-              displayName: email.split('@')[0],
-              email: email,
-              isAnonymous: false
-            };
-            appState.currentUser = loggedUser;
-            updateAuthHeaderUI();
-            closeAuthModal();
-            showToast("Đăng nhập chế độ Local thành công!");
-          }
+          await window.firebaseLoginWithEmail(email, password);
+          closeAuthModal();
+          showToast("Đăng nhập thành công! Chào mừng bạn quay trở lại.");
         }
       } catch (err) {
-        console.error("Auth submit error:", err);
-        showAuthError(translateFirebaseError(err));
+        console.error("Auth error:", err);
+        showAuthError(mapFirebaseError(err.code || err.message));
       } finally {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = origText;
-        }
+        if (submitBtn) submitBtn.disabled = false;
       }
     }
 
     async function handleGoogleSignIn() {
-      const btn = document.getElementById('btnGoogleAuth');
-      const origText = btn ? btn.innerHTML : '';
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin text-rose-400"></i> Đang kết nối Google...';
-      }
-
       try {
-        if (typeof window.cloudAuthGoogle === 'function') {
-          await window.cloudAuthGoogle();
-          closeAuthModal();
-          showToast("Đăng nhập bằng tài khoản Google thành công!");
-        } else {
-          showAuthError("Vui lòng cấu hình Firebase để đăng nhập bằng Google.");
-        }
+        await window.firebaseLoginWithGoogle();
+        closeAuthModal();
+        showToast("Đăng nhập bằng Google thành công!");
       } catch (err) {
         console.error("Google sign in error:", err);
-        showAuthError(translateFirebaseError(err));
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = origText;
-        }
+        showAuthError(mapFirebaseError(err.code || err.message));
       }
     }
 
-    async function continueAsGuest() {
-      closeAuthModal();
-      try {
-        if (window.cloudAuth && !window.cloudAuth.currentUser) {
-          await window.signInAnonymously(window.cloudAuth);
-        }
-      } catch (e) {
-        console.warn("Guest init:", e);
+    async function handleForgotPassword() {
+      const email = document.getElementById('authEmailInput')?.value.trim();
+      if (!email) {
+        showAuthError("Vui lòng nhập địa chỉ email vào ô trên để nhận liên kết khôi phục.");
+        return;
       }
-      showToast("Bạn đang sử dụng chế độ Khách (Ẩn danh).");
+      try {
+        await window.firebaseSendPasswordReset(email);
+        showToast(`Hướng dẫn đặt lại mật khẩu đã được gửi tới ${email}! Vui lòng kiểm tra hộp thư.`);
+      } catch(err) {
+        showAuthError(mapFirebaseError(err.code || err.message));
+      }
+    }
+
+    function continueAsGuest() {
+      closeAuthModal();
+      showToast("Bạn đang trải nghiệm với tư cách Khách. Dữ liệu sẽ lưu tạm trên trình duyệt.");
     }
 
     async function handleUserSignOut() {
-      toggleUserDropdown();
       try {
-        if (typeof window.cloudAuthSignOut === 'function') {
-          await window.cloudAuthSignOut();
-        } else {
-          appState.currentUser = {
-            uid: 'guest_' + Date.now().toString(36),
-            displayName: 'Khách Khám Phá',
-            email: 'guest@documind.cloud',
-            isAnonymous: true
-          };
-          updateAuthHeaderUI();
-        }
-        showToast("Đã đăng xuất tài khoản thành công.");
+        toggleUserDropdown();
+        await window.firebaseSignOut();
+        showToast("Đã đăng xuất tài khoản.");
       } catch (err) {
-        console.error("Sign out error:", err);
-        showToast("Lỗi khi đăng xuất: " + err.message);
+        console.error(err);
       }
-    }
-
-    async function recordDocumentToUserHistory(title, text, parsedData) {
-      if (!parsedData) return;
-      const docId = appState.currentDocId || ('doc_' + Date.now());
-      appState.currentDocId = docId;
-
-      const historyItem = {
-        id: docId,
-        title: title || 'Tài liệu không tên',
-        source: appState.activeDocSource || 'file',
-        summary: parsedData.executiveSummary || text.substring(0, 160) + '...',
-        words: text.trim().split(/\s+/).length,
-        timestamp: new Date().toLocaleString('vi-VN', {
-          hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
-        }),
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        text: text,
-        parsedData: parsedData,
-        mermaidFlowchart: appState.currentMermaidCode || parsedData.mermaidFlowchart || '',
-        interactiveHtml: appState.interactiveData ? JSON.stringify(appState.interactiveData) : ''
-      };
-
-      // Cập nhật bộ nhớ cục bộ
-      const existingIdx = (appState.userHistory || []).findIndex(h => h.id === docId);
-      if (existingIdx >= 0) {
-        appState.userHistory[existingIdx] = historyItem;
-      } else {
-        appState.userHistory.unshift(historyItem);
-      }
-      if (appState.userHistory.length > 50) {
-        appState.userHistory.pop();
-      }
-
-      // Lưu lên Firestore
-      if (typeof window.cloudSaveDocument === 'function') {
-        try {
-          await window.cloudSaveDocument(historyItem);
-        } catch (e) {
-          console.warn("Cloud save error:", e);
-        }
-      }
-
-      updateAuthHeaderUI();
     }
 
     function openHistoryModal() {
       const modal = document.getElementById('historyModal');
       if (modal) modal.classList.remove('hidden');
+      appState.filteredHistory = [...appState.userHistory];
       const searchInput = document.getElementById('historySearchInput');
-      if (searchInput) searchInput.value = appState.historySearchKeyword || '';
+      if (searchInput) searchInput.value = '';
       renderUserHistoryList();
     }
 
@@ -2174,8 +1928,16 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    function filterUserHistoryList(keyword) {
-      appState.historySearchKeyword = keyword.trim().toLowerCase();
+    function filterUserHistory(query) {
+      const q = (query || '').trim().toLowerCase();
+      if (!q) {
+        appState.filteredHistory = [...appState.userHistory];
+      } else {
+        appState.filteredHistory = (appState.userHistory || []).filter(item => 
+          (item.title || '').toLowerCase().includes(q) || 
+          (item.summary || '').toLowerCase().includes(q)
+        );
+      }
       renderUserHistoryList();
     }
 
@@ -2184,99 +1946,47 @@
       const countLabel = document.getElementById('historyTotalCountLabel');
       if (!container) return;
 
-      let history = appState.userHistory || [];
-      if (countLabel) countLabel.innerText = `${history.length} tài liệu đã lưu`;
+      const list = appState.filteredHistory || [];
+      if (countLabel) countLabel.innerText = `${(appState.userHistory || []).length} tài liệu đã lưu`;
 
-      if (appState.historySearchKeyword) {
-        const kw = appState.historySearchKeyword;
-        history = history.filter(item => 
-          (item.title || '').toLowerCase().includes(kw) || 
-          (item.summary || '').toLowerCase().includes(kw)
-        );
-      }
-
-      if (history.length === 0) {
+      if (list.length === 0) {
         container.innerHTML = `
           <div class="text-center py-12 text-slate-500 space-y-2">
             <i class="fa-regular fa-folder-open text-3xl"></i>
-            <p class="text-xs">${appState.historySearchKeyword ? 'Không tìm thấy tài liệu nào khớp với từ khóa tìm kiếm.' : 'Chưa có tài liệu nào trong tủ lưu trữ của bạn.'}</p>
+            <p class="text-xs">Không tìm thấy tài liệu nào trong Tủ lưu trữ.</p>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = history.map(item => `
-        <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group">
-          <div class="space-y-1 flex-1 cursor-pointer" onclick="loadHistoryDoc('${item.id}')">
+      container.innerHTML = list.map(item => `
+        <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1 flex-1 pr-2">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-white line-clamp-1 group-hover:text-cyan-300 transition">${escapeHtml(item.title)}</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">${escapeHtml(item.timestamp || '')}</span>
+              <span class="text-xs font-bold text-white line-clamp-1">${escapeHtml(item.title)}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 whitespace-nowrap">${escapeHtml(item.timestamp || '')}</span>
             </div>
             <p class="text-[11px] text-slate-400 line-clamp-2">${escapeHtml(item.summary || '')}</p>
-            <div class="flex items-center gap-3 text-[10px] text-slate-500 pt-0.5">
-              <span class="text-cyanic-400"><i class="fa-solid fa-align-left text-[9px]"></i> ${item.words?.toLocaleString() || 0} từ</span>
-              <span>•</span>
-              <span class="capitalize"><i class="fa-solid fa-tag text-[9px]"></i> ${escapeHtml(item.source || 'file')}</span>
+            <div class="flex items-center gap-3 text-[10px] text-cyanic-400 pt-0.5">
+              <span><i class="fa-solid fa-align-left text-[9px]"></i> ${item.words?.toLocaleString() || 0} từ</span>
+              <span class="text-slate-500">•</span>
+              <span class="text-slate-400 capitalize">Nguồn: ${escapeHtml(item.sourceType || 'văn bản')}</span>
             </div>
           </div>
 
-          <div class="flex items-center gap-1.5 self-end sm:self-auto flex-shrink-0">
-            <button onclick="openRenameModal('${item.id}', '${escapeHtml(item.title).replace(/'/g, "\\'")}', event)" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition" title="Đổi tên tài liệu">
-              <i class="fa-solid fa-pen-to-square text-xs"></i>
-            </button>
+          <div class="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
             <button onclick="loadHistoryDoc('${item.id}')" class="px-3 py-1.5 rounded-xl bg-brand-600/30 hover:bg-brand-600 text-brand-300 hover:text-white border border-brand-500/40 text-xs font-semibold transition flex items-center gap-1">
               <i class="fa-solid fa-folder-open"></i> Mở Lại
             </button>
-            <button onclick="deleteHistoryDoc('${item.id}', event)" class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 border border-slate-800 transition" title="Xóa tài liệu">
+            <button onclick="openRenameDocModal('${item.id}', '${escapeHtml(item.title)}')" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Đổi tên">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            <button onclick="confirmDeleteDoc('${item.id}', '${escapeHtml(item.title)}')" class="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-950/40 text-slate-500 hover:text-rose-400 border border-slate-700/80 transition" title="Xóa tài liệu">
               <i class="fa-regular fa-trash-can text-xs"></i>
             </button>
           </div>
         </div>
       `).join('');
-    }
-
-    function openRenameModal(id, currentTitle, event) {
-      if (event) event.stopPropagation();
-      const modal = document.getElementById('renameDocModal');
-      const input = document.getElementById('renameDocTitleInput');
-      const idInput = document.getElementById('renameDocIdInput');
-      if (modal && input && idInput) {
-        input.value = currentTitle;
-        idInput.value = id;
-        modal.classList.remove('hidden');
-        input.focus();
-      }
-    }
-
-    function closeRenameModal() {
-      const modal = document.getElementById('renameDocModal');
-      if (modal) modal.classList.add('hidden');
-    }
-
-    async function confirmRenameDocument() {
-      const id = document.getElementById('renameDocIdInput')?.value;
-      const newTitle = document.getElementById('renameDocTitleInput')?.value.trim();
-      if (!id || !newTitle) {
-        showToast("Vui lòng nhập tiêu đề tài liệu!");
-        return;
-      }
-
-      const item = (appState.userHistory || []).find(h => h.id === id);
-      if (item) {
-        item.title = newTitle;
-      }
-      if (appState.currentDocId === id) {
-        appState.currentDocTitle = newTitle;
-        document.getElementById('docTitleLabel').innerText = newTitle;
-      }
-
-      if (typeof window.cloudUpdateDocumentField === 'function') {
-        await window.cloudUpdateDocumentField(id, { title: newTitle });
-      }
-
-      renderUserHistoryList();
-      closeRenameModal();
-      showToast("Đã đổi tên tài liệu thành công!");
     }
 
     function loadHistoryDoc(id) {
@@ -2285,53 +1995,104 @@
 
       appState.currentDocId = item.id;
       appState.currentDocTitle = item.title;
-      appState.currentDocText = item.text;
+      appState.currentDocText = item.rawText || item.text || '';
+      appState.currentSourceType = item.sourceType || 'paste';
       appState.parsedData = item.parsedData;
       appState.flowchartSegments = item.parsedData?.flowchartSegments || [];
-      appState.activeDocSource = item.source || 'file';
 
-      if (item.mermaidFlowchart) {
-        appState.currentMermaidCode = item.mermaidFlowchart;
-      }
-
-      // Khôi phục Infographic tương tác nếu có
-      if (item.interactiveHtml) {
-        try {
-          appState.interactiveData = JSON.parse(item.interactiveHtml);
-        } catch (e) {
-          appState.interactiveData = null;
-        }
-      } else {
-        appState.interactiveData = null;
-      }
-
-      setDocumentReady(item.title, item.text);
+      setDocumentReady(item.title, appState.currentDocText);
       renderDashboard(item.parsedData);
       renderFlowchartSegmentsList();
+
+      // If user had infographic HTML, restore it
+      if (item.infographicHtml) {
+        const mount = document.getElementById('interactiveCanvasMount');
+        if (mount) {
+          mount.innerHTML = item.infographicHtml;
+          document.getElementById('infographicPlaceholder')?.classList.add('hidden');
+          document.getElementById('infographicResultBox')?.classList.remove('hidden');
+        }
+      }
+
       closeHistoryModal();
       showToast(`Đã mở lại tài liệu: "${item.title}"`);
     }
 
-    async function deleteHistoryDoc(id, event) {
-      if (event) event.stopPropagation();
-      const item = (appState.userHistory || []).find(h => h.id === id);
-      const title = item ? item.title : 'tài liệu này';
-      
-      const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi tủ tài liệu của mình? Hành động này không thể hoàn tác.`);
-      if (!confirmed) return;
+    function openRenameDocModal(id, currentTitle) {
+      appState.docPendingRenameId = id;
+      const input = document.getElementById('renameDocTitleInput');
+      if (input) input.value = currentTitle || '';
+      document.getElementById('renameDocModal')?.classList.remove('hidden');
+    }
 
-      appState.userHistory = (appState.userHistory || []).filter(h => h.id !== id);
-      if (appState.currentDocId === id) {
-        appState.currentDocId = null;
+    function closeRenameDocModal() {
+      appState.docPendingRenameId = null;
+      document.getElementById('renameDocModal')?.classList.add('hidden');
+    }
+
+    async function submitRenameDocument() {
+      const id = appState.docPendingRenameId;
+      const input = document.getElementById('renameDocTitleInput');
+      const newTitle = input ? input.value.trim() : '';
+
+      if (!id || !newTitle) {
+        showToast("Vui lòng nhập tiêu đề tài liệu!");
+        return;
       }
 
-      if (typeof window.cloudDeleteDocument === 'function') {
-        await window.cloudDeleteDocument(id);
-      }
+      await window.cloudUpdateDocTitle(id, newTitle);
+      closeRenameDocModal();
+      showToast("Đã đổi tên tài liệu thành công!");
+    }
 
-      renderUserHistoryList();
-      updateAuthHeaderUI();
-      showToast("Đã xóa tài liệu khỏi danh sách.");
+    function confirmDeleteDoc(id, title) {
+      appState.docPendingDeleteId = id;
+      const msg = document.getElementById('confirmDeleteMsg');
+      if (msg) msg.innerHTML = `Bạn có chắc muốn xóa tài liệu <strong>"${escapeHtml(title)}"</strong> khỏi Tủ lưu trữ? Thao tác này không thể hoàn tác.`;
+      document.getElementById('confirmDeleteModal')?.classList.remove('hidden');
+    }
+
+    function closeConfirmDeleteModal() {
+      appState.docPendingDeleteId = null;
+      document.getElementById('confirmDeleteModal')?.classList.add('hidden');
+    }
+
+    async function executeDeleteDocument() {
+      const id = appState.docPendingDeleteId;
+      if (!id) return;
+      await window.cloudDeleteDocument(id);
+      closeConfirmDeleteModal();
+      showToast("Đã xóa tài liệu khỏi Tủ lưu trữ!");
+    }
+
+    function recordCurrentDocumentToCloud() {
+      if (!appState.parsedData) return;
+
+      const docId = appState.currentDocId || ('doc_' + Date.now());
+      appState.currentDocId = docId;
+
+      const canvasMount = document.getElementById('interactiveCanvasMount');
+      const infographicHtml = canvasMount ? canvasMount.innerHTML : '';
+
+      const docItem = {
+        id: docId,
+        title: appState.currentDocTitle || 'Tài liệu không tên',
+        sourceType: appState.currentSourceType,
+        text: appState.currentDocText,
+        summary: appState.parsedData.executiveSummary || appState.currentDocText.substring(0, 160) + '...',
+        words: appState.currentDocText.trim().split(/\s+/).length,
+        timestamp: new Date().toLocaleString('vi-VN', {
+          hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+        }),
+        createdAt: Date.now(),
+        parsedData: appState.parsedData,
+        mermaidCode: appState.currentMermaidCode,
+        infographicHtml: infographicHtml
+      };
+
+      if (typeof window.cloudSaveDocument === 'function') {
+        window.cloudSaveDocument(docItem);
+      }
     }
 
     function populateTemplateDropdown() {
@@ -2376,7 +2137,7 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    function saveCustomTemplate() {
+    async function saveCustomTemplate() {
       const nameInput = document.getElementById('newTemplateNameInput');
       const name = nameInput ? nameInput.value.trim() : '';
       const promptInput = document.getElementById('infographicPromptInput');
@@ -2398,22 +2159,16 @@
       appState.promptTemplates.push(newTemplate);
       appState.selectedTemplateId = newId;
 
-      // Save template to localStorage and cloud storage
-      try {
-        localStorage.setItem('documind_custom_prompt_templates', JSON.stringify(appState.promptTemplates));
-      } catch (e) {
-        console.warn('LocalStorage save error:', e);
-      }
       if (typeof window.cloudSaveTemplate === 'function') {
-        window.cloudSaveTemplate(newTemplate);
+        await window.cloudSaveTemplate(newTemplate);
       }
 
       populateTemplateDropdown();
       closeSaveTemplateModal();
-      showToast(`Đã lưu mẫu "${name}" thành công!`);
+      showToast(`Đã lưu mẫu "${name}" lên đám mây thành công!`);
     }
 
-    function deleteCurrentTemplate() {
+    async function deleteCurrentTemplate() {
       const currentId = appState.selectedTemplateId;
       const isDefault = ['tpl_bento', 'tpl_roadmap', 'tpl_pillars', 'tpl_editorial'].includes(currentId);
       if (isDefault) {
@@ -2424,14 +2179,8 @@
       appState.promptTemplates = appState.promptTemplates.filter(t => t.id !== currentId);
       appState.selectedTemplateId = appState.promptTemplates[0]?.id || 'tpl_bento';
 
-      // Delete from localStorage and cloud storage
-      try {
-        localStorage.setItem('documind_custom_prompt_templates', JSON.stringify(appState.promptTemplates));
-      } catch (e) {
-        console.warn('LocalStorage delete error:', e);
-      }
       if (typeof window.cloudDeleteTemplate === 'function') {
-        window.cloudDeleteTemplate(currentId);
+        await window.cloudDeleteTemplate(currentId);
       }
 
       populateTemplateDropdown();
@@ -2441,24 +2190,6 @@
     function restoreDefaultPrompt() {
       applySelectedPromptTemplate();
       showToast("Đã khôi phục nội dung prompt theo mẫu gốc.");
-    }
-
-    // Initialize Mermaid
-    if (window.mermaid) {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'dark',
-        themeVariables: {
-          darkMode: true,
-          background: '#020617',
-          primaryColor: '#6366f1',
-          primaryTextColor: '#f8fafc',
-          primaryBorderColor: '#818cf8',
-          lineColor: '#38bdf8',
-          secondaryColor: '#0f172a',
-          tertiaryColor: '#1e293b'
-        }
-      });
     }
 
     function switchInputTab(tab) {
@@ -2511,7 +2242,6 @@
         } else if (ext === 'docx') {
           extractedText = await parseDocxFile(file);
         } else {
-          // Plain text / Markdown
           extractedText = await file.text();
         }
 
@@ -2519,22 +2249,13 @@
           throw new Error("Không thể trích xuất đủ nội dung văn bản từ tệp này.");
         }
 
-        appState.currentDocId = 'doc_' + Date.now();
-        appState.activeDocSource = ext;
+        appState.currentSourceType = 'file';
         setDocumentReady(file.name, extractedText, 'fa-file-pdf');
-        showToast("Đã trích xuất tệp thành công! Đang tiến hành phân tích & vẽ sơ đồ...");
-
-        // Scroll to loading indicator
-        const loadingEl = document.getElementById('loadingIndicator');
-        if (loadingEl) {
-          loadingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        // Automatically trigger document analysis & diagram generation
-        processAndAnalyzeDocument();
+        showToast("Tải tệp thành công! Nhấn 'Tóm Tắt & Vẽ Sơ Đồ Ngay' để tiếp tục.");
       } catch (err) {
         console.error(err);
         showToast("Lỗi khi đọc file: " + err.message);
+      } finally {
         showLoading(false);
       }
     }
@@ -2565,38 +2286,32 @@
         return;
       }
 
-      // Extract Document ID from regular docs link
       const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
       if (!match || !match[1]) {
-        showToast("Không tìm thấy Document ID trong liên kết. Hãy kiểm tra định dạng URL Google Docs!");
+        showToast("Không tìm thấy Document ID trong liên kết.");
         return;
       }
 
       const docId = match[1];
       showLoading(true, "Đang kết nối tới Google Docs...");
-
-      // Attempt direct plain-text export endpoint (supported for public shared docs)
       const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=txt`;
 
       try {
         const res = await fetch(exportUrl);
         if (!res.ok) {
-          throw new Error("Không thể tải trực tiếp. Có thể tài liệu chưa được bật chế độ 'Bất kỳ ai có liên kết đều xem được' (CORS block).");
+          throw new Error("CORS restricted");
         }
         const text = await res.text();
         if (text && text.trim().length > 50) {
-          appState.currentDocId = 'doc_' + Date.now();
-          appState.activeDocSource = 'google_docs';
+          appState.currentSourceType = 'gdrive';
           setDocumentReady(`Google Doc [${docId.substring(0, 8)}...]`, text, 'fa-brands fa-google-drive');
-          showToast("Đã nhập Google Docs! Đang bắt đầu phân tích & vẽ sơ đồ...");
-          processAndAnalyzeDocument();
+          showToast("Đã nhập nội dung từ Google Docs thành công!");
           return;
         }
-        throw new Error("Nội dung trả về trống.");
       } catch (err) {
-        // Friendly fallback for CORS or permissions
-        showLoading(false);
         promptGoogleDocManualFallback(docId, url);
+      } finally {
+        showLoading(false);
       }
     }
 
@@ -2616,11 +2331,9 @@ Sự giao thoa giữa Khoa học nhận thức (Cognitive Science) và Trí tu�
 3. KẾT QUẢ VÀ TƯƠNG LAI:
 Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt quãng tăng tỷ lệ lưu giữ kiến thức lên 73% sau 30 ngày so với việc đọc lại thụ động.`;
 
-      appState.currentDocId = 'doc_' + Date.now();
-      appState.activeDocSource = 'google_docs';
+      appState.currentSourceType = 'gdrive';
       setDocumentReady(`Tài liệu Google Docs (${docId.substring(0, 8)})`, sampleText, 'fa-brands fa-google-drive');
       showToast("Đã nạp nội dung tài liệu Google Docs vào bộ phân tích!");
-      processAndAnalyzeDocument();
     }
 
     function updatePasteStats() {
@@ -2652,7 +2365,7 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
         showToast("Đã dán văn bản từ bộ nhớ tạm!");
         textarea.focus();
       } catch (err) {
-        showToast("Vui lòng nhấn tổ hợp Ctrl + V để dán trực tiếp vào khung soạn thảo.");
+        showToast("Vui lòng nhấn phím Ctrl + V để dán trực tiếp vào khung soạn thảo.");
       }
     }
 
@@ -2677,12 +2390,11 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
       const text = textarea ? textarea.value.trim() : '';
 
       if (!text || text.length < 30) {
-        showToast("Vui lòng nhập hoặc dán ít nhất 30 ký tự để hệ thống có đủ dữ liệu phân tích!");
+        showToast("Vui lòng nhập hoặc dán ít nhất 30 ký tự để phân tích!");
         if (textarea) textarea.focus();
         return;
       }
 
-      // Determine an appropriate title
       const customTitleInput = document.getElementById('pastedTextTitle');
       let docTitle = customTitleInput ? customTitleInput.value.trim() : '';
 
@@ -2698,20 +2410,9 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
         }
       }
 
-      appState.currentDocId = 'doc_' + Date.now();
-      appState.activeDocSource = 'paste';
-
-      // Mark document ready
+      appState.currentSourceType = 'paste';
       setDocumentReady(docTitle, text, 'fa-paste');
       showToast("Đã xác nhận văn bản! Đang tiến hành phân tích ý chính & vẽ sơ đồ...");
-
-      // Scroll to loading indicator
-      const loadingEl = document.getElementById('loadingIndicator');
-      if (loadingEl) {
-        loadingEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
-      // Automatically trigger analysis
       processAndAnalyzeDocument();
     }
 
@@ -2730,7 +2431,7 @@ Người học áp dụng sơ đồ tư duy kết hợp cùng lặp lại ngắt
 
     function showLoading(show, status = "Đang xử lý...") {
       const loader = document.getElementById('loadingIndicator');
-      const text = document.getElementById('loadingStatusText');
+      const text = document.getElementById('loadingDetailStep');
       if (show) {
         text.innerText = status;
         loader.classList.remove('hidden');
@@ -2757,8 +2458,7 @@ Multi-Head Attention chia nhỏ không gian biểu diễn thành nhiều không 
 4. ỨNG DỤNG VÀ THÁCH THỨC
 Mô hình ngôn ngữ lớn đã chứng minh sức mạnh vượt trội trong việc tóm tắt tài liệu, lập trình tự động, phân tích tài chính và hỗ trợ ra quyết định. Tuy nhiên, các thách thức lớn vẫn tồn tại bao gồm: Hiện tượng ảo giác (Hallucination), chi phí tính toán cao và bảo mật dữ liệu riêng tư.`;
 
-      appState.currentDocId = 'doc_' + Date.now();
-      appState.activeDocSource = 'sample';
+      appState.currentSourceType = 'sample';
       setDocumentReady("Báo Cáo Kiến Trúc LLM (Tài Liệu Mẫu)", sampleText, 'fa-file-lines');
       showToast("Đã tải tài liệu mẫu! Đang bắt đầu tóm tắt...");
       processAndAnalyzeDocument();
@@ -2779,7 +2479,9 @@ Mô hình ngôn ngữ lớn đã chứng minh sức mạnh vượt trội trong 
         return;
       }
 
-      // Show loader and track animated progress
+      // Reset doc ID to trigger a new document creation in Firestore
+      appState.currentDocId = 'doc_' + Date.now();
+
       document.getElementById('loadingIndicator').classList.remove('hidden');
       const tracker = createProgressTracker({
         barId: 'loadingProgressBar',
@@ -2791,17 +2493,17 @@ Mô hình ngôn ngữ lớn đã chứng minh sức mạnh vượt trội trong 
           "Đang bóc tách các thực thể và luận điểm cốt lõi...",
           "AI đang phân nhóm các phân đoạn logic cho Flowchart...",
           "Xây dựng cây tri thức phân cấp Mindmap...",
-          "Tính toán tỷ trọng phân bổ và hoàn thiện dashboard..."
+          "Lưu trữ dữ liệu an toàn vào Cloud Firestore..."
         ]
       });
 
       const systemPrompt = `Bạn là chuyên gia phân tích và trực quan hóa tri thức hàng đầu.
-Phân tích văn bản tài liệu và trả về cấu trúc JSON duy nhất để vẽ sơ đồ tư duy (mindmap), lưu đồ tiến trình (flowchart) và chia thành các phân đoạn logic mà người dùng có thể chọn để vẽ flowchart chuyên sâu.
+Phân tích văn bản tài liệu và trả về cấu trúc JSON duy nhất để vẽ sơ đồ tư duy (mindmap), lưu đồ tiến trình (flowchart) và chia thành các phân đoạn logic.
 Schema JSON:
 {
-  "executiveSummary": "Đoạn văn tóm tắt cô đọng 2-3 câu ngắn gọn",
-  "compressionRatio": "Tỷ lệ phần trăm rút gọn (ví dụ 75%)",
-  "readingTimeMin": "Thời gian đọc bản tóm tắt (ví dụ: 2)",
+  "executiveSummary": "Đoạn văn tóm tắt cô đọng 2-3 câu",
+  "compressionRatio": "75%",
+  "readingTimeMin": "2",
   "complexityLevel": "Đơn giản | Trung bình | Chuyên sâu",
   "keyTakeaways": [
     "Luận điểm cốt lõi 1",
@@ -2813,38 +2515,29 @@ Schema JSON:
   "flowchartSegments": [
     {
       "id": "seg_1",
-      "title": "Tên phân đoạn 1 (Ví dụ: Chuỗi Cung Ứng & Logistics Đầu Vào)",
-      "description": "Mô tả ngắn về dòng chảy logic trong đoạn này",
+      "title": "Phân đoạn 1",
+      "description": "Mô tả ngắn",
       "mermaidCode": "graph TD;\\n  A[Bắt đầu] --> B[Hành động 1];\\n  B --> C{Đạt yêu cầu?};\\n  C -- Có --> D[Chuyển tiếp];\\n  C -- Không --> E[Xử lý lỗi];"
     },
     {
       "id": "seg_2",
-      "title": "Tên phân đoạn 2 (Ví dụ: Quy Trình Vận Hành & Lắp Ráp)",
-      "description": "Mô tả ngắn gọn về quy trình thực thi",
+      "title": "Phân đoạn 2",
+      "description": "Mô tả ngắn",
       "mermaidCode": "graph TD;\\n  A[Tiếp nhận] --> B[Thực thi];\\n  B --> C[Kiểm tra];"
     },
     {
       "id": "seg_3",
-      "title": "Tên phân đoạn 3 (Ví dụ: Logistics Đầu Ra & Bàn Giao)",
-      "description": "Mô tả quy trình kiểm định và phân phối",
+      "title": "Phân đoạn 3",
+      "description": "Mô tả ngắn",
       "mermaidCode": "graph TD;\\n  A[Sản phẩm] --> B[Vận chuyển];\\n  B --> C[Hoàn thành];"
     }
   ],
   "mindmapData": {
     "name": "Chủ đề chính",
     "children": [
-      {
-        "name": "Nhánh 1",
-        "children": [{ "name": "Ý chi tiết 1.1" }, { "name": "Ý chi tiết 1.2" }]
-      },
-      {
-        "name": "Nhánh 2",
-        "children": [{ "name": "Ý chi tiết 2.1" }, { "name": "Ý chi tiết 2.2" }]
-      },
-      {
-        "name": "Nhánh 3",
-        "children": [{ "name": "Ý chi tiết 3.1" }, { "name": "Ý chi tiết 3.2" }]
-      }
+      { "name": "Nhánh 1", "children": [{ "name": "Ý chi tiết 1.1" }, { "name": "Ý chi tiết 1.2" }] },
+      { "name": "Nhánh 2", "children": [{ "name": "Ý chi tiết 2.1" }, { "name": "Ý chi tiết 2.2" }] },
+      { "name": "Nhánh 3", "children": [{ "name": "Ý chi tiết 3.1" }, { "name": "Ý chi tiết 3.2" }] }
     ]
   },
   "mermaidFlowchart": "graph TD;\\n  A[Tổng quan] --> B[Giai đoạn 1];\\n  B --> C[Giai đoạn 2];\\n  C --> D[Kết quả];",
@@ -2858,17 +2551,12 @@ Schema JSON:
 
       try {
         const apiKey = appState.customApiKey || "";
-        if (!apiKey) {
-          throw new Error("Không có khóa API, sử dụng bộ phân tích thông minh tích hợp!");
-        }
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
         const payload = {
           contents: [{ parts: [{ text: userQuery }] }],
           systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: {
-            responseMimeType: "application/json"
-          }
+          generationConfig: { responseMimeType: "application/json" }
         };
 
         const response = await fetch(apiUrl, {
@@ -2892,12 +2580,12 @@ Schema JSON:
           appState.flowchartSegments = parsed.flowchartSegments || [];
           renderDashboard(parsed);
           renderFlowchartSegmentsList();
-          recordDocumentToUserHistory(appState.currentDocTitle, appState.currentDocText, parsed);
-          showToast("Phân tích tài liệu và chia phân đoạn Flowchart thành công!");
+          recordCurrentDocumentToCloud();
+          showToast("Phân tích tài liệu thành công và đã lưu tự động vào Tủ tài liệu!");
         }, 400);
 
       } catch (err) {
-        console.warn("Chuyển sang bộ phân tích ngữ nghĩa tích hợp sẵn:", err);
+        console.warn("Fallback to semantic engine:", err);
         tracker.complete();
 
         setTimeout(() => {
@@ -2907,8 +2595,8 @@ Schema JSON:
           appState.flowchartSegments = fallbackData.flowchartSegments || [];
           renderDashboard(fallbackData);
           renderFlowchartSegmentsList();
-          recordDocumentToUserHistory(appState.currentDocTitle, appState.currentDocText, fallbackData);
-          showToast("Đã phân tích và chia phân đoạn Flowchart hoàn tất!");
+          recordCurrentDocumentToCloud();
+          showToast("Đã phân tích tài liệu và tự động đồng bộ lên Đám mây!");
         }, 400);
       }
     }
@@ -2920,20 +2608,20 @@ Schema JSON:
       const segments = [
         {
           id: 'seg_1',
-          title: 'Giai Đoạn Khởi Đầu & Đầu Vào',
-          description: 'Chuẩn bị tài nguyên, thu thập thông tin và tiền đề logic',
+          title: 'Khởi Đầu & Thu Thập Đầu Vào',
+          description: 'Chuẩn bị dữ liệu và tiền đề logic',
           mermaidCode: `graph TD;\n  A[Khởi tạo: ${mainTitle.substring(0, 18)}] --> B[Thu thập dữ liệu];\n  B --> C{Kiểm tra tính hợp lệ?};\n  C -- Đạt --> D[Chuyển bước thực thi];\n  C -- Thiếu --> E[Bổ sung dữ liệu];\n  E --> B;`
         },
         {
           id: 'seg_2',
-          title: 'Quy Trình Xử Lý & Vận Hành Cốt Lõi',
-          description: 'Các bước xử lý kỹ thuật, tương tác giữa các thành phần',
+          title: 'Vận Hành & Xử Lý Cốt Lõi',
+          description: 'Quy trình xử lý kỹ thuật trung tâm',
           mermaidCode: `graph TD;\n  A[Tiếp nhận đầu vào] --> B[Xử lý trung tâm];\n  B --> C[Phối hợp nghiệp vụ];\n  C --> D{Đạt tiêu chuẩn?};\n  D -- Có --> E[Hoàn thiện];\n  D -- Không --> F[Hiệu chỉnh lại];\n  F --> B;`
         },
         {
           id: 'seg_3',
-          title: 'Đầu Ra, Đánh Giá & Tối Ưu',
-          description: 'Bàn giao kết quả, vòng lặp cải tiến và đo lường giá trị',
+          title: 'Đầu Ra & Tối Ưu Hóa',
+          description: 'Bàn giao kết quả và cải tiến liên tục',
           mermaidCode: `graph TD;\n  A[Kết quả xử lý] --> B[Đánh giá chỉ số KPI];\n  B --> C[Chuyển giao cho người dùng];\n  C --> D[Thu thập phản hồi];\n  D --> E[Cải tiến chu kỳ sau];`
         }
       ];
@@ -3017,120 +2705,235 @@ Schema JSON:
       if (segment.mermaidCode) {
         appState.currentMermaidCode = segment.mermaidCode;
         renderMermaidDiagram(segment.mermaidCode);
+        recordCurrentDocumentToCloud();
         showToast(`Đã chuyển sang sơ đồ: "${segment.title}"`);
       }
     }
 
-    async function generateCustomSegmentFlowchart() {
-      const input = document.getElementById('flowchartCustomDirective');
-      const directive = input ? input.value.trim() : '';
-
-      if (!directive) {
-        showToast("Vui lòng nhập chỉ dẫn hoặc yêu cầu phân đoạn cần vẽ!");
-        if (input) input.focus();
+    async function generateInteractiveInfographic() {
+      if (!appState.currentDocText || appState.currentDocText.length < 30) {
+        showToast("Vui lòng tải hoặc dán tài liệu trước khi tạo Infographic!");
         return;
       }
 
-      const progressBox = document.getElementById('flowchartProgressBox');
-      if (progressBox) progressBox.classList.remove('hidden');
+      const rawCustomPrompt = document.getElementById('infographicPromptInput').value.trim();
+      const layout = document.getElementById('infographicLayoutSelect').value || 'bento';
+      appState.infographicLayout = layout;
+
+      const title = appState.currentDocTitle || "Tài Liệu Tổng Quan";
+      const summary = appState.parsedData?.executiveSummary || appState.currentDocText.substring(0, 200);
+      const keyTakeaways = (appState.parsedData?.keyTakeaways || []).join('; ') || "Các luận điểm cốt lõi của tài liệu";
+
+      let finalPrompt = rawCustomPrompt
+        .replace(/\{title\}/g, title)
+        .replace(/\{summary\}/g, summary)
+        .replace(/\{keyTakeaways\}/g, keyTakeaways);
+
+      if (!finalPrompt.includes(title)) {
+        finalPrompt = `YÊU CẦU ĐẶC BIỆT TỪ CHỦ NHÂN:\n"${finalPrompt}"\n\nÁp dụng cho tài liệu: "${title}".\nTóm tắt sơ bộ: "${summary}".\nCác ý cốt lõi: ${keyTakeaways}`;
+      }
+
+      appState.lastUsedInfographicPrompt = finalPrompt;
+
+      document.getElementById('infographicPlaceholder').classList.add('hidden');
+      document.getElementById('infographicResultBox').classList.add('hidden');
+      document.getElementById('infographicLoading').classList.remove('hidden');
+
+      const btnGen = document.getElementById('btnGenerateInfographic');
+      if (btnGen) btnGen.disabled = true;
 
       const tracker = createProgressTracker({
-        barId: 'flowchartProgressBar',
-        percentId: 'flowchartProgressPercent',
-        timeId: 'flowchartProgressEstimate',
-        detailId: 'flowchartProgressDetail',
-        totalDurationSec: 6,
+        barId: 'infographicProgressBar',
+        percentId: 'infographicPercentText',
+        timeId: 'infographicEstimatedTime',
+        detailId: 'infographicDetailStep',
+        totalDurationSec: 7,
         steps: [
-          "Bóc tách luồng nghiệp vụ theo yêu cầu riêng...",
-          "Thiết lập điều kiện rẽ nhánh và các nút quyết định...",
-          "Tạo cú pháp Mermaid tối ưu kích thước..."
+          "AI đang tiếp nhận và phân tích prompt yêu cầu...",
+          "Bóc tách các chỉ số định lượng và luận điểm theo prompt...",
+          "Xây dựng cấu trúc thẻ tương tác và mở rộng chi tiết...",
+          "Hoàn thiện giao diện HTML Infographic..."
         ]
       });
 
-      const systemPrompt = `Bạn là chuyên gia thiết kế sơ đồ luồng Mermaid.
-Hãy dựa vào tài liệu gốc và chỉ dẫn của người dùng để tạo MỘT sơ đồ luồng Mermaid (Mermaid Flowchart) súc tích, kích thước vừa phải (dưới 10 bước).
-Chỉ trả về JSON thuần:
+      const systemPrompt = `Bạn là chuyên gia kiến tạo Infographic HTML tương tác hàng đầu.
+BẮT BUỘC: Bạn PHẢI tuân thủ nghiêm ngặt mọi định hướng và yêu cầu trong prompt của người dùng.
+Trả về JSON thuần túy theo schema:
 {
-  "title": "Tiêu đề phân đoạn",
-  "description": "Mô tả ngắn",
-  "mermaidCode": "graph TD;\\n  A[Khởi đầu] --> B{Điều kiện?};\\n  B -- Đúng --> C[Bước tiếp];\\n  B -- Sai --> D[Xử lý];"
+  "title": "Tiêu đề Infographic phản ánh đúng prompt của người dùng",
+  "subtitle": "Phụ đề đúc kết bản chất",
+  "quote": "Một câu châm ngôn hoặc kết luận then chốt theo định hướng của prompt",
+  "executiveSummary": "Đoạn tóm tắt điều hành 2-3 câu làm nổi bật đúng trọng tâm người dùng yêu cầu",
+  "metrics": [
+    { "value": "75%", "label": "Tỷ lệ cô đọng", "desc": "Giảm thời gian đọc", "icon": "fa-bolt" },
+    { "value": "5/5", "label": "Trụ cột tri thức", "desc": "Bao quát toàn diện", "icon": "fa-bullseye" },
+    { "value": "100%", "label": "Khả năng ứng dụng", "desc": "Sẵn sàng triển khai", "icon": "fa-check-double" }
+  ],
+  "items": [
+    {
+      "id": 1,
+      "title": "Tên điểm cốt lõi 1",
+      "summary": "Mô tả ngắn gọn, dễ hiểu trong 1 câu",
+      "deepAnalysis": "Phân tích chuyên sâu 2-3 câu: Cơ chế hoạt động hoặc vì sao điều này quan trọng",
+      "practicalAction": "Ứng dụng thực tế: Điều bạn nên làm ngay",
+      "tags": ["Khái niệm", "Trọng tâm"],
+      "icon": "fa-brain"
+    },
+    {
+      "id": 2,
+      "title": "Tên điểm cốt lõi 2",
+      "summary": "Mô tả ngắn gọn",
+      "deepAnalysis": "Phân tích chuyên sâu",
+      "practicalAction": "Ứng dụng thực tế",
+      "tags": ["Cơ chế", "Vận hành"],
+      "icon": "fa-gears"
+    },
+    {
+      "id": 3,
+      "title": "Tên điểm cốt lõi 3",
+      "summary": "Mô tả ngắn gọn",
+      "deepAnalysis": "Phân tích chuyên sâu",
+      "practicalAction": "Ứng dụng thực tế",
+      "tags": ["Phương pháp", "Tối ưu"],
+      "icon": "fa-sliders"
+    },
+    {
+      "id": 4,
+      "title": "Tên điểm cốt lõi 4",
+      "summary": "Mô tả ngắn gọn",
+      "deepAnalysis": "Phân tích chuyên sâu",
+      "practicalAction": "Ứng dụng thực tế",
+      "tags": ["Thực thi", "Kết quả"],
+      "icon": "fa-rocket"
+    },
+    {
+      "id": 5,
+      "title": "Tên điểm cốt lõi 5",
+      "summary": "Mô tả ngắn gọn",
+      "deepAnalysis": "Phân tích chuyên sâu",
+      "practicalAction": "Ứng dụng thực tế",
+      "tags": ["Lưu ý", "Đánh giá"],
+      "icon": "fa-shield-halved"
+    }
+  ],
+  "takeawayAction": "Hành động then chốt được khuyến nghị theo đúng chỉ dẫn của prompt"
 }`;
-
-      const userQuery = `Chỉ dẫn phân đoạn: "${directive}"\n\nTài liệu gốc:\n${appState.currentDocText.substring(0, 8000)}`;
 
       try {
         const apiKey = appState.customApiKey || "";
-        if (!apiKey) {
-          throw new Error("Không có khóa API, sử dụng bộ phân tích thông minh tích hợp!");
-        }
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const payload = {
+          contents: [{ parts: [{ text: `${finalPrompt}\n\nNội dung tài liệu gốc:\n${appState.currentDocText.substring(0, 12000)}` }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { responseMimeType: "application/json" }
+        };
 
         const res = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: userQuery }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { responseMimeType: "application/json" }
-          })
+          body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error("HTTP " + res.status);
+        if (!response.ok) throw new Error("HTTP error " + res.status);
+
         const data = await res.json();
         const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        const result = JSON.parse(jsonText);
+        if (!jsonText) throw new Error("Không nhận được dữ liệu từ AI.");
 
+        appState.interactiveData = JSON.parse(jsonText);
         tracker.complete();
 
         setTimeout(() => {
-          if (progressBox) progressBox.classList.add('hidden');
-          const newSegId = 'seg_custom_' + Date.now();
-          const newSeg = {
-            id: newSegId,
-            title: result.title || directive.substring(0, 30),
-            description: result.description || "Phân đoạn tạo theo yêu cầu riêng",
-            mermaidCode: result.mermaidCode
-          };
-          appState.flowchartSegments.unshift(newSeg);
-          appState.selectedSegmentId = newSegId;
-          renderFlowchartSegmentsList();
-          renderMermaidDiagram(newSeg.mermaidCode);
-          showToast("AI đã tạo sơ đồ luồng theo phân đoạn yêu cầu!");
+          document.getElementById('infographicLoading').classList.add('hidden');
+          document.getElementById('infographicResultBox').classList.remove('hidden');
+          if (btnGen) btnGen.disabled = false;
+          appState.checkedKeyPoints.clear();
+          renderInteractiveHtmlInfographic();
+          recordCurrentDocumentToCloud();
+          showToast("Đã kiến tạo Infographic tương tác theo đúng prompt tùy chỉnh!");
         }, 400);
 
       } catch (err) {
-        console.warn("Dựng flowchart tùy biến dự phòng:", err);
         tracker.complete();
 
         setTimeout(() => {
-          if (progressBox) progressBox.classList.add('hidden');
-          const fallbackCode = `graph TD;\n  A[Yêu cầu: ${directive.substring(0, 20)}] --> B[Tiếp nhận nghiệp vụ];\n  B --> C{Kiểm tra tiêu chí?};\n  C -- Đạt --> D[Thực thi hành động];\n  C -- Không đạt --> E[Điều chỉnh bổ sung];\n  E --> B;\n  D --> F[Tổng kết & Bàn giao];`;
-          const newSegId = 'seg_custom_' + Date.now();
-          const newSeg = {
-            id: newSegId,
-            title: directive.substring(0, 32),
-            description: "Phân đoạn AI xây dựng theo yêu cầu",
-            mermaidCode: fallbackCode
-          };
-          appState.flowchartSegments.unshift(newSeg);
-          appState.selectedSegmentId = newSegId;
-          renderFlowchartSegmentsList();
-          renderMermaidDiagram(fallbackCode);
-          showToast("Đã tạo sơ đồ luồng theo phân đoạn của bạn!");
+          document.getElementById('infographicLoading').classList.add('hidden');
+          document.getElementById('infographicResultBox').classList.remove('hidden');
+          if (btnGen) btnGen.disabled = false;
+          appState.interactiveData = generateHeuristicInteractiveData(title, summary, appState.parsedData?.keyTakeaways, rawCustomPrompt);
+          appState.checkedKeyPoints.clear();
+          renderInteractiveHtmlInfographic();
+          recordCurrentDocumentToCloud();
+          showToast("Đã hoàn tất kiến tạo Infographic tương tác!");
         }, 400);
       }
+    }
+
+    function generateHeuristicInteractiveData(title, summary, takeaways, customPrompt = '') {
+      let pts = (takeaways && takeaways.length > 0) ? [...takeaways] : [
+        "Nắm bắt bản chất và bài toán trung tâm của tài liệu.",
+        "Xây dựng cơ chế vận hành logic từ lý thuyết đến thực hành.",
+        "Trực quan hóa cấu trúc dữ liệu để giảm tải nhận thức.",
+        "Kiểm soát điều kiện biên và rủi ro thực thi.",
+        "Chuyển đổi tri thức thành kết quả và hành động cụ thể."
+      ];
+
+      let customTitle = title || "Bản Đồ Tri Thức Cốt Lõi";
+      let customSubtitle = "Hệ thống hóa luận điểm & Ứng dụng thực tiễn";
+      let focusTag = "Trọng tâm";
+      let customQuote = "Tri thức chỉ thực sự có sức mạnh khi được cấu trúc rõ ràng và chuyển hóa thành hành động nhất quán.";
+
+      const lowerPrompt = (customPrompt || '').toLowerCase();
+      if (lowerPrompt.includes('logistics') || lowerPrompt.includes('jit') || lowerPrompt.includes('sản xuất')) {
+        customTitle = `Tối Ưu Logistics & Quy Trình JIT: ${customTitle}`;
+        customSubtitle = "Tinh gọn chuỗi cung ứng, giảm tồn kho đệm và tối đa tốc độ luân chuyển";
+        focusTag = "Chuỗi Cung Ứng";
+        customQuote = "Trong chuỗi cung ứng hiện đại, sự lãng phí lớn nhất không nằm ở nhân lực mà ở thời gian chờ và hàng tồn ứ đọng.";
+      } else if (lowerPrompt.includes('chi phí') || lowerPrompt.includes('số liệu') || lowerPrompt.includes('hiệu suất')) {
+        customSubtitle = "Phân tích định lượng hiệu quả chi phí và tối ưu nguồn lực";
+        focusTag = "Hiệu Suất";
+      }
+
+      if (lowerPrompt.includes('3 trụ cột') || lowerPrompt.includes('3 bước') || lowerPrompt.includes('3 điểm')) {
+        pts = pts.slice(0, 3);
+      } else {
+        pts = pts.slice(0, 5);
+      }
+
+      const icons = ["fa-lightbulb", "fa-gears", "fa-network-wired", "fa-shield-halved", "fa-rocket"];
+
+      return {
+        title: customTitle,
+        subtitle: customSubtitle,
+        quote: customQuote,
+        executiveSummary: summary || `Bản phân tích được xây dựng theo định hướng prompt: "${(customPrompt || 'Tối ưu kiến thức cốt lõi').substring(0, 110)}..."`,
+        metrics: [
+          { value: "75%", label: "Tỷ Lệ Tối Giản", desc: "Tiết kiệm 80% thời gian đọc", icon: "fa-bolt" },
+          { value: `${pts.length} Điểm`, label: "Luận Điểm Trọng Tâm", desc: "Theo yêu cầu riêng của bạn", icon: "fa-bullseye" },
+          { value: "100%", label: "Tính Ứng Dụng", desc: "Hành động thực chiến", icon: "fa-circle-check" }
+        ],
+        items: pts.map((pt, idx) => ({
+          id: idx + 1,
+          title: `Luận Điểm ${idx + 1}: ${pt.substring(0, 38)}${pt.length > 38 ? '...' : ''}`,
+          summary: pt,
+          deepAnalysis: `[Phân tích chuyên sâu]: Trụ cột này làm sáng tỏ quy trình vận hành, loại bỏ điểm nghẽn và đảm bảo tính liên kết xuyên suốt.`,
+          practicalAction: `Hành động cụ thể: Thiết lập tiêu chuẩn kiểm tra kép, theo dõi chỉ số đo lường trong 48 giờ và tối ưu hóa khâu chuyển giao.`,
+          tags: [focusTag, `Trụ Cột ${idx + 1}`],
+          icon: icons[idx % icons.length]
+        })),
+        takeawayAction: "Hãy bắt đầu bằng việc đọc lướt qua các trụ cột trên, nhấp mở rộng từng phần để nắm chi tiết, và đánh dấu vào ô kiểm sau khi bạn đã hiểu rõ!"
+      };
     }
 
     function renderDashboard(data) {
       document.getElementById('analysisDashboard').classList.remove('hidden');
 
-      // Update stat cards
       document.getElementById('statCompression').innerText = data.compressionRatio || "70%";
       document.getElementById('statKeyPointsCount').innerText = `${data.keyTakeaways?.length || 5} Luận Điểm`;
       document.getElementById('statReadingTime').innerText = `~${data.readingTimeMin || 3} Phút`;
       document.getElementById('statComplexity').innerText = data.complexityLevel || "Trung Bình";
 
-      // Render Key Takeaways
       const takeawaysContainer = document.getElementById('keyTakeawaysList');
       takeawaysContainer.innerHTML = '';
       (data.keyTakeaways || []).forEach((pt, index) => {
@@ -3145,7 +2948,6 @@ Chỉ trả về JSON thuần:
         takeawaysContainer.appendChild(item);
       });
 
-      // Render Detailed Summary Box
       const detailedBox = document.getElementById('detailedSummaryBox');
       detailedBox.innerHTML = `
         <div class="bg-indigo-950/30 border border-indigo-500/30 p-4 rounded-2xl">
@@ -3165,26 +2967,14 @@ Chỉ trả về JSON thuần:
         </div>
       `;
 
-      // Render Visualizations
+      appState.currentMermaidCode = data.mermaidFlowchart || '';
+      const rawTextarea = document.getElementById('flowchartRawCodeInput');
+      if (rawTextarea) rawTextarea.value = appState.currentMermaidCode;
+
       renderInteractiveMindmap(data.mindmapData);
       renderMermaidDiagram(data.mermaidFlowchart);
       renderTopicCharts(data.topicDistribution);
 
-      // Pre-generate Infographic data so it's instantly ready
-      if (!appState.interactiveData) {
-        const rawCustomPrompt = document.getElementById('infographicPromptInput')?.value.trim() || '';
-        appState.interactiveData = generateHeuristicInteractiveData(
-          appState.currentDocTitle,
-          data.executiveSummary,
-          data.keyTakeaways,
-          rawCustomPrompt
-        );
-        document.getElementById('infographicPlaceholder')?.classList.add('hidden');
-        document.getElementById('infographicResultBox')?.classList.remove('hidden');
-        renderInteractiveHtmlInfographic();
-      }
-
-      // Scroll smoothly to dashboard
       document.getElementById('analysisDashboard').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -3198,7 +2988,6 @@ Chỉ trả về JSON thuần:
 
       const g = svg.append("g").attr("class", "mindmap-group");
 
-      // Zoom & Pan
       const zoom = d3.zoom()
         .scaleExtent([0.3, 3])
         .on("zoom", (event) => {
@@ -3208,7 +2997,6 @@ Chỉ trả về JSON thuần:
       appState.mindmapZoom = zoom;
       appState.svgSelection = svg;
 
-      // Tree layout
       const treeLayout = d3.tree().size([height - 60, width - 260]);
       const root = d3.hierarchy(treeData, d => d.children);
       root.x0 = height / 2;
@@ -3223,7 +3011,6 @@ Chỉ trả về JSON thuần:
 
         nodes.forEach(d => { d.y = d.depth * 180 + 80; });
 
-        // Update Nodes
         const node = g.selectAll('g.node')
           .data(nodes, d => d.id || (d.id = ++i));
 
@@ -3252,7 +3039,6 @@ Chỉ trả về JSON thuần:
           .attr("text-anchor", d => d.children || d._children ? "end" : "start")
           .text(d => d.data.name);
 
-        // Transition nodes to new position
         const nodeUpdate = node.merge(nodeEnter).transition().duration(500)
           .attr("transform", d => `translate(${d.y},${d.x})`);
 
@@ -3266,7 +3052,6 @@ Chỉ trả về JSON thuần:
 
         nodeExit.select('circle').attr('r', 1e-6);
 
-        // Update Links
         const link = g.selectAll('path.link')
           .data(links, d => d.target.id);
 
@@ -3322,7 +3107,6 @@ Chỉ trả về JSON thuần:
       if (loading) loading.classList.remove('hidden');
 
       let cleanDef = chartDefinition.replace(/\\n/g, '\n').trim();
-      // Clean syntax to avoid Mermaid parser crash with special characters
       cleanDef = cleanDef.replace(/["“”]/g, '').trim();
       if (!cleanDef.startsWith('graph') && !cleanDef.startsWith('flowchart')) {
         cleanDef = 'graph TD;\n' + cleanDef;
@@ -3349,7 +3133,7 @@ Chỉ trả về JSON thuần:
           renderFlowchartFallback(container, cleanDef);
         }
       } catch (e) {
-        console.warn("Mermaid parsing issue, fallback to visual nodes:", e);
+        console.warn("Mermaid parsing issue:", e);
         renderFlowchartFallback(container, cleanDef);
       } finally {
         if (loading) loading.classList.add('hidden');
@@ -3421,15 +3205,8 @@ Chỉ trả về JSON thuần:
       appState.currentMermaidCode = raw;
       renderMermaidDiagram(raw);
       toggleFlowchartCodeModal();
-
-      // Tự động cập nhật mã sơ đồ Mermaid vào Document trên Firestore
-      if (appState.currentDocId && typeof window.cloudUpdateDocumentField === 'function') {
-        window.cloudUpdateDocumentField(appState.currentDocId, {
-          mermaidFlowchart: raw
-        });
-      }
-
-      showToast("Đã cập nhật sơ đồ từ mã Mermaid và lưu lên đám mây!");
+      recordCurrentDocumentToCloud();
+      showToast("Đã cập nhật sơ đồ từ mã Mermaid!");
     }
 
     function renderTopicCharts(distribution) {
@@ -3438,7 +3215,6 @@ Chỉ trả về JSON thuần:
       const labels = distribution.labels;
       const dataValues = distribution.weights;
 
-      // Radar Chart
       const radarCtx = document.getElementById('topicRadarChart').getContext('2d');
       if (appState.radarChartInstance) appState.radarChartInstance.destroy();
       appState.radarChartInstance = new Chart(radarCtx, {
@@ -3473,7 +3249,6 @@ Chỉ trả về JSON thuần:
         }
       });
 
-      // Doughnut / Bar Chart
       const barCtx = document.getElementById('topicBarChart').getContext('2d');
       if (appState.barChartInstance) appState.barChartInstance.destroy();
       appState.barChartInstance = new Chart(barCtx, {
@@ -3528,21 +3303,6 @@ Chỉ trả về JSON thuần:
             renderMermaidDiagram(appState.currentMermaidCode);
           }
         }, 80);
-      } else if (viewName === 'infographic') {
-        if (!appState.interactiveData && appState.currentDocText) {
-          const rawPrompt = document.getElementById('infographicPromptInput')?.value.trim() || '';
-          appState.interactiveData = generateHeuristicInteractiveData(
-            appState.currentDocTitle,
-            appState.parsedData?.executiveSummary,
-            appState.parsedData?.keyTakeaways,
-            rawPrompt
-          );
-        }
-        if (appState.interactiveData) {
-          document.getElementById('infographicPlaceholder')?.classList.add('hidden');
-          document.getElementById('infographicResultBox')?.classList.remove('hidden');
-          renderInteractiveHtmlInfographic();
-        }
       }
     }
 
@@ -3554,14 +3314,12 @@ Chỉ trả về JSON thuần:
       const chatContainer = document.getElementById('chatMessages');
       if (!chatContainer) return;
 
-      // User Message
       const userBubble = document.createElement('div');
       userBubble.className = 'bg-brand-600/30 border border-brand-500/40 p-3 rounded-2xl rounded-tr-none text-slate-100 text-xs ml-6 leading-relaxed';
       userBubble.innerText = query;
       chatContainer.appendChild(userBubble);
       input.value = '';
 
-      // Assistant Message with typing simulation
       const botBubble = document.createElement('div');
       botBubble.className = 'bg-slate-800/80 border border-slate-700/60 p-3 rounded-2xl rounded-tl-none text-slate-200 text-xs mr-6 leading-relaxed flex items-center gap-2';
       botBubble.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin text-cyan-400"></i> Đang tra cứu trong tài liệu...';
@@ -3588,35 +3346,29 @@ Chỉ trả về JSON thuần:
     }
 
     /* ==========================================================
-       INTERACTIVE HTML INFOGRAPHIC ENGINE & STUDIO
+       INTERACTIVE HTML INFOGRAPHIC ENGINE
        ========================================================== */
     function setInfographicTheme(themeName) {
       appState.infographicTheme = themeName;
+      if (typeof window.cloudSaveUserSettings === 'function') {
+        window.cloudSaveUserSettings({ infographicTheme: themeName });
+      }
       if (appState.interactiveData) {
         renderInteractiveHtmlInfographic();
+        recordCurrentDocumentToCloud();
         showToast(`Đã đổi sang bảng màu ${getThemeDisplayName(themeName)}`);
-      }
-      if (typeof window.cloudSaveSettings === 'function') {
-        window.cloudSaveSettings({
-          infographicTheme: appState.infographicTheme,
-          infographicLayout: appState.infographicLayout,
-          flowchartScale: appState.flowchartScale
-        });
       }
     }
 
     function changeInteractiveLayout(layoutName) {
       appState.infographicLayout = layoutName;
+      if (typeof window.cloudSaveUserSettings === 'function') {
+        window.cloudSaveUserSettings({ infographicLayout: layoutName });
+      }
       if (appState.interactiveData) {
         renderInteractiveHtmlInfographic();
+        recordCurrentDocumentToCloud();
         showToast(`Đã chuyển sang bố cục ${getLayoutDisplayName(layoutName)}`);
-      }
-      if (typeof window.cloudSaveSettings === 'function') {
-        window.cloudSaveSettings({
-          infographicTheme: appState.infographicTheme,
-          infographicLayout: appState.infographicLayout,
-          flowchartScale: appState.flowchartScale
-        });
       }
     }
 
@@ -3670,7 +3422,7 @@ Chỉ trả về JSON thuần:
             glowColor: 'rgba(245, 158, 11, 0.15)',
             btnBg: 'bg-amber-600 hover:bg-amber-500 text-white'
           };
-        default: // indigo
+        default:
           return {
             gradient: 'from-brand-500 via-indigo-600 to-cyanic-400',
             accent: 'text-brand-400',
@@ -3681,213 +3433,6 @@ Chỉ trả về JSON thuần:
             btnBg: 'bg-brand-600 hover:bg-brand-500 text-white'
           };
       }
-    }
-
-    async function generateInteractiveInfographic() {
-      if (!appState.currentDocText || appState.currentDocText.length < 30) {
-        showToast("Vui lòng tải hoặc dán tài liệu trước khi tạo Infographic!");
-        return;
-      }
-
-      const rawCustomPrompt = document.getElementById('infographicPromptInput').value.trim();
-      const layout = document.getElementById('infographicLayoutSelect').value || 'bento';
-      appState.infographicLayout = layout;
-
-      const title = appState.currentDocTitle || "Tài Liệu Tổng Quan";
-      const summary = appState.parsedData?.executiveSummary || appState.currentDocText.substring(0, 200);
-      const keyTakeaways = (appState.parsedData?.keyTakeaways || []).join('; ') || "Các luận điểm cốt lõi của tài liệu";
-
-      // Inject variables if present, or wrap custom user instructions directly
-      let finalPrompt = rawCustomPrompt
-        .replace(/\{title\}/g, title)
-        .replace(/\{summary\}/g, summary)
-        .replace(/\{keyTakeaways\}/g, keyTakeaways);
-
-      if (!finalPrompt.includes(title)) {
-        finalPrompt = `YÊU CẦU ĐẶC BIỆT TỪ CHỦ NHÂN:\n"${finalPrompt}"\n\nÁp dụng cho tài liệu: "${title}".\nTóm tắt sơ bộ: "${summary}".\nCác ý cốt lõi: ${keyTakeaways}`;
-      }
-
-      appState.lastUsedInfographicPrompt = finalPrompt;
-
-      // Update UI loading state
-      document.getElementById('infographicPlaceholder').classList.add('hidden');
-      document.getElementById('infographicResultBox').classList.add('hidden');
-      document.getElementById('infographicLoading').classList.remove('hidden');
-
-      const btnGen = document.getElementById('btnGenerateInfographic');
-      if (btnGen) btnGen.disabled = true;
-
-      const systemPrompt = `Bạn là chuyên gia kiến tạo Infographic HTML tương tác hàng đầu.
-ĐẶC BIỆT QUAN TRỌNG: Bạn PHẢI tuân thủ nghiêm ngặt mọi yêu cầu và chỉ dẫn tùy chỉnh từ người dùng (như trọng tâm phân tích, đối tượng mục tiêu, các số liệu hoặc góc nhìn họ đã chỉ định).
-Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) theo schema sau:
-{
-  "title": "Tiêu đề Infographic được thiết kế theo đúng trọng tâm người dùng yêu cầu",
-  "subtitle": "Phụ đề đúc kết bản chất",
-  "quote": "Một câu châm ngôn hoặc kết luận then chốt rút ra từ tài liệu theo định hướng của prompt",
-  "executiveSummary": "Đoạn tóm tắt điều hành 2-3 câu làm nổi bật đúng ý muốn của người dùng",
-  "metrics": [
-    { "value": "75%", "label": "Tỷ lệ cô đọng", "desc": "Giảm thời gian đọc", "icon": "fa-bolt" },
-    { "value": "5/5", "label": "Trụ cột tri thức", "desc": "Bao quát toàn diện", "icon": "fa-bullseye" },
-    { "value": "100%", "label": "Khả năng ứng dụng", "desc": "Sẵn sàng triển khai", "icon": "fa-check-double" }
-  ],
-  "items": [
-    {
-      "id": 1,
-      "title": "Tên điểm cốt lõi 1",
-      "summary": "Mô tả ngắn gọn, dễ hiểu trong 1 câu",
-      "deepAnalysis": "Phân tích chuyên sâu 2-3 câu: Cơ chế hoạt động hoặc vì sao điều này quan trọng theo yêu cầu của người dùng",
-      "practicalAction": "Ứng dụng thực tế: Điều bạn nên làm ngay hôm nay",
-      "tags": ["Khái niệm", "Trọng tâm"],
-      "icon": "fa-brain"
-    },
-    {
-      "id": 2,
-      "title": "Tên điểm cốt lõi 2",
-      "summary": "Mô tả ngắn gọn, dễ hiểu trong 1 câu",
-      "deepAnalysis": "Phân tích chuyên sâu 2-3 câu",
-      "practicalAction": "Ứng dụng thực tế cụ thể",
-      "tags": ["Cơ chế", "Vận hành"],
-      "icon": "fa-gears"
-    },
-    {
-      "id": 3,
-      "title": "Tên điểm cốt lõi 3",
-      "summary": "Mô tả ngắn gọn",
-      "deepAnalysis": "Phân tích chuyên sâu",
-      "practicalAction": "Ứng dụng thực tế",
-      "tags": ["Phương pháp", "Tối ưu"],
-      "icon": "fa-sliders"
-    },
-    {
-      "id": 4,
-      "title": "Tên điểm cốt lõi 4",
-      "summary": "Mô tả ngắn gọn",
-      "deepAnalysis": "Phân tích chuyên sâu",
-      "practicalAction": "Ứng dụng thực tế",
-      "tags": ["Thực thi", "Kết quả"],
-      "icon": "fa-rocket"
-    },
-    {
-      "id": 5,
-      "title": "Tên điểm cốt lõi 5",
-      "summary": "Mô tả ngắn gọn",
-      "deepAnalysis": "Phân tích chuyên sâu",
-      "practicalAction": "Ứng dụng thực tế",
-      "tags": ["Lưu ý", "Đánh giá"],
-      "icon": "fa-shield-halved"
-    }
-  ],
-  "takeawayAction": "Lời khuyên then chốt để áp dụng toàn bộ tài liệu này một cách hiệu quả nhất theo chỉ dẫn của prompt"
-}`;
-
-      try {
-        const apiKey = appState.customApiKey || "";
-        if (!apiKey) {
-          throw new Error("Không có khóa API, sử dụng bộ phân tích thông minh tích hợp!");
-        }
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-        const payload = {
-          contents: [{ parts: [{ text: `${finalPrompt}\n\nNội dung tài liệu gốc:\n${appState.currentDocText.substring(0, 12000)}` }] }],
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { responseMimeType: "application/json" }
-        };
-
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error("HTTP error " + res.status);
-
-        const data = await res.json();
-        const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!jsonText) throw new Error("Không nhận được dữ liệu từ AI.");
-
-        appState.interactiveData = JSON.parse(jsonText);
-        showToast("Đã kiến tạo Infographic tương tác theo đúng prompt tùy chỉnh!");
-      } catch (err) {
-        console.warn("Chuyển sang bộ tạo Infographic HTML tương tác tùy biến theo prompt ngoài:", err);
-        appState.interactiveData = generateHeuristicInteractiveData(title, summary, appState.parsedData?.keyTakeaways, rawCustomPrompt);
-        showToast("Đã áp dụng prompt ngoài và dựng Infographic tương tác thành công!");
-      } finally {
-        document.getElementById('infographicLoading').classList.add('hidden');
-        document.getElementById('infographicResultBox').classList.remove('hidden');
-        if (btnGen) btnGen.disabled = false;
-        appState.checkedKeyPoints.clear();
-        renderInteractiveHtmlInfographic();
-
-        // Tự động cập nhật Infographic vào Document hiện tại trên Firestore
-        if (appState.currentDocId && appState.interactiveData && typeof window.cloudUpdateDocumentField === 'function') {
-          window.cloudUpdateDocumentField(appState.currentDocId, {
-            interactiveHtml: JSON.stringify(appState.interactiveData)
-          });
-        }
-      }
-    }
-
-    function generateHeuristicInteractiveData(title, summary, takeaways, customPrompt = '') {
-      let pts = (takeaways && takeaways.length > 0) ? [...takeaways] : [
-        "Nắm bắt bản chất và bài toán trung tâm của tài liệu.",
-        "Xây dựng cơ chế vận hành logic từ lý thuyết đến thực hành.",
-        "Trực quan hóa cấu trúc dữ liệu để giảm tải nhận thức.",
-        "Kiểm soát điều kiện biên và rủi ro thực thi.",
-        "Chuyển đổi tri thức thành kết quả và hành động cụ thể."
-      ];
-
-      // Customization derived from user prompt instructions
-      let customTitle = title || "Bản Đồ Tri Thức Cốt Lõi";
-      let customSubtitle = "Hệ thống hóa luận điểm & Ứng dụng thực tiễn";
-      let focusTag = "Trọng tâm";
-      let customQuote = "Tri thức chỉ thực sự có sức mạnh khi được cấu trúc rõ ràng và chuyển hóa thành hành động nhất quán.";
-
-      const lowerPrompt = (customPrompt || '').toLowerCase();
-      if (lowerPrompt.includes('logistics') || lowerPrompt.includes('jit') || lowerPrompt.includes('sản xuất')) {
-        customTitle = `Tối Ưu Logistics & Quy Trình JIT: ${customTitle}`;
-        customSubtitle = "Tinh gọn chuỗi cung ứng, giảm tồn kho đệm và tối đa tốc độ luân chuyển";
-        focusTag = "Chuỗi Cung Ứng";
-        customQuote = "Trong chuỗi cung ứng hiện đại, sự lãng phí lớn nhất không nằm ở nhân lực mà ở thời gian chờ và hàng tồn ứ đọng.";
-      } else if (lowerPrompt.includes('chi phí') || lowerPrompt.includes('số liệu') || lowerPrompt.includes('hiệu suất')) {
-        customSubtitle = "Phân tích định lượng hiệu quả chi phí và tối ưu nguồn lực";
-        focusTag = "Hiệu Suất";
-      } else if (lowerPrompt.includes('rủi ro') || lowerPrompt.includes('khắc phục')) {
-        customSubtitle = "Ma trận phòng ngừa rủi ro vận hành và kế hoạch ứng phó";
-        focusTag = "Kiểm Soát Rủi Ro";
-      }
-
-      // Check if user requested 3 pillars
-      if (lowerPrompt.includes('3 trụ cột') || lowerPrompt.includes('3 bước') || lowerPrompt.includes('3 điểm')) {
-        pts = pts.slice(0, 3);
-      } else {
-        pts = pts.slice(0, 5);
-      }
-
-      const icons = ["fa-lightbulb", "fa-gears", "fa-network-wired", "fa-shield-halved", "fa-rocket"];
-
-      return {
-        title: customTitle,
-        subtitle: customSubtitle,
-        quote: customQuote,
-        executiveSummary: summary || `Bản phân tích được xây dựng theo định hướng prompt: "${(customPrompt || 'Tối ưu kiến thức cốt lõi').substring(0, 110)}..."`,
-        metrics: [
-          { value: "75%", label: "Tỷ Lệ Tối Giản", desc: "Tiết kiệm 80% thời gian đọc", icon: "fa-bolt" },
-          { value: `${pts.length} Điểm`, label: "Luận Điểm Trọng Tâm", desc: "Theo yêu cầu riêng của bạn", icon: "fa-bullseye" },
-          { value: "100%", label: "Tính Ứng Dụng", desc: "Hành động thực chiến", icon: "fa-circle-check" }
-        ],
-        items: pts.map((pt, idx) => ({
-          id: idx + 1,
-          title: `Luận Điểm ${idx + 1}: ${pt.substring(0, 38)}${pt.length > 38 ? '...' : ''}`,
-          summary: pt,
-          deepAnalysis: `[Phân tích theo yêu cầu riêng]: Trụ cột này làm sáng tỏ quy trình vận hành, loại bỏ điểm nghẽn và đảm bảo tính liên kết xuyên suốt của hệ thống.`,
-          practicalAction: `Hành động cụ thể: Thiết lập tiêu chuẩn kiểm tra kép, theo dõi chỉ số đo lường trong 48 giờ và tối ưu hóa khâu chuyển giao.`,
-          tags: [focusTag, `Trụ Cột ${idx + 1}`],
-          icon: icons[idx % icons.length]
-        })),
-        takeawayAction: customPrompt 
-          ? `Đã cấu trúc theo prompt ngoài: "${customPrompt.substring(0, 80)}...". Hãy nhấp vào từng thẻ để bung mở phân tích sâu và tick chọn khi hoàn thành!`
-          : "Hãy bắt đầu bằng việc đọc lướt qua các trụ cột trên, nhấp mở rộng từng phần để nắm chi tiết, và đánh dấu vào ô kiểm sau khi bạn đã hiểu rõ!"
-      };
     }
 
     function renderInteractiveHtmlInfographic() {
@@ -3914,11 +3459,9 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       container.innerHTML = layoutHtml;
     }
 
-    // 1. Bento Grid Layout
     function renderBentoLayout(data, theme) {
       return `
         <div class="space-y-4">
-          <!-- Hero Header Card -->
           <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
             <div class="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl pointer-events-none" style="background: ${theme.glowColor};"></div>
             
@@ -3939,7 +3482,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
                 ${escapeHtml(data.executiveSummary)}
               </div>
 
-              <!-- Quote pill -->
               ${data.quote ? `
                 <div class="mt-4 p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-start gap-3 text-xs text-slate-300 italic">
                   <i class="fa-solid fa-quote-left ${theme.accent} text-sm mt-0.5"></i>
@@ -3949,7 +3491,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
             </div>
           </div>
 
-          <!-- Quick Metrics Bar -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             ${(data.metrics || []).map(m => `
               <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center gap-3.5 hover:border-slate-700 transition">
@@ -3965,7 +3506,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
             `).join('')}
           </div>
 
-          <!-- Interactive Knowledge Cards (Bento) -->
           <div class="space-y-3 pt-1">
             <div class="flex items-center justify-between text-xs text-slate-400 px-1">
               <span class="font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
@@ -3979,7 +3519,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
             </div>
           </div>
 
-          <!-- Bottom Action Banner -->
           ${data.takeawayAction ? `
             <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div class="flex items-start gap-3">
@@ -4000,11 +3539,9 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       `;
     }
 
-    // 2. Roadmap Layout
     function renderRoadmapLayout(data, theme) {
       return `
         <div class="space-y-6">
-          <!-- Header -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${theme.badgeBg} text-xs font-bold uppercase mb-2">
               <i class="fa-solid fa-timeline"></i> Lộ Trình Diễn Tiến & Nhân Quả
@@ -4013,16 +3550,12 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
             <p class="text-xs text-slate-300 mt-1 max-w-2xl">${escapeHtml(data.executiveSummary)}</p>
           </div>
 
-          <!-- Timeline Steps -->
           <div class="relative pl-6 sm:pl-8 border-l-2 border-slate-800 space-y-6 ml-4">
             ${data.items.map((item, idx) => `
               <div class="relative group">
-                <!-- Timeline Dot -->
                 <div class="absolute -left-[31px] sm:-left-[39px] top-1.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-950 border-2 ${appState.checkedKeyPoints.has(item.id) ? 'border-emerald-400 text-emerald-400' : 'border-slate-700 text-slate-400 group-hover:border-cyan-400 group-hover:text-cyan-400'} flex items-center justify-center text-xs font-bold transition shadow-md">
                   ${appState.checkedKeyPoints.has(item.id) ? '<i class="fa-solid fa-check"></i>' : (idx + 1)}
                 </div>
-
-                <!-- Content Card -->
                 ${renderInteractiveCard(item, idx, theme, 'roadmap')}
               </div>
             `).join('')}
@@ -4031,7 +3564,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       `;
     }
 
-    // 3. Pillars Layout
     function renderPillarsLayout(data, theme) {
       return `
         <div class="space-y-6">
@@ -4050,7 +3582,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       `;
     }
 
-    // 4. Editorial Layout
     function renderEditorialLayout(data, theme) {
       return `
         <div class="space-y-6 bg-slate-950/60 p-6 rounded-3xl border border-slate-800">
@@ -4085,7 +3616,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       `;
     }
 
-    // Interactive Card Element with Expand & Checkbox toggles
     function renderInteractiveCard(item, index, theme, variant = 'bento') {
       const isChecked = appState.checkedKeyPoints.has(item.id);
 
@@ -4094,7 +3624,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
              data-keywords="${escapeHtml((item.title + ' ' + item.summary + ' ' + (item.tags || []).join(' ')).toLowerCase())}">
           
           <div>
-            <!-- Top Card Header -->
             <div class="flex items-start justify-between gap-3 mb-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl ${theme.bgAccent} ${theme.accent} flex items-center justify-center text-sm flex-shrink-0 font-bold">
@@ -4105,18 +3634,15 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
                 </h4>
               </div>
 
-              <!-- Interactive Done Checkbox -->
               <button onclick="toggleKeyPointCheck(${item.id})" class="p-1 text-slate-500 hover:text-emerald-400 transition" title="Đánh dấu đã hiểu">
                 <i class="fa-regular ${isChecked ? 'fa-circle-check text-emerald-400 text-base' : 'fa-circle'}"></i>
               </button>
             </div>
 
-            <!-- Summary -->
             <p class="text-xs text-slate-300 leading-relaxed mb-3">
               ${escapeHtml(item.summary)}
             </p>
 
-            <!-- Tags -->
             <div class="flex flex-wrap gap-1.5 mb-3">
               ${(item.tags || []).map(tag => `
                 <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-950 text-slate-400 border border-slate-800">
@@ -4125,7 +3651,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
               `).join('')}
             </div>
 
-            <!-- Deep Analysis Expandable Drawer -->
             <div id="drawer-${item.id}" class="hidden pt-3 border-t border-slate-800/80 space-y-2 text-xs">
               <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 space-y-1">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1">
@@ -4145,7 +3670,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
             </div>
           </div>
 
-          <!-- Bottom Expand Toggle Button -->
           <div class="pt-2 mt-2 border-t border-slate-800/50 flex items-center justify-between text-xs">
             <span class="text-[10px] text-slate-500">
               ${isChecked ? '<span class="text-emerald-400 font-medium"><i class="fa-solid fa-check mr-1"></i>Đã nắm vững</span>' : 'Chưa đánh dấu'}
@@ -4205,9 +3729,6 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
       });
     }
 
-    /* ==========================================================
-       EXPORT & SHARING INTERACTIVE HTML
-       ========================================================== */
     function exportStandaloneInteractiveHtml() {
       if (!appState.interactiveData) {
         showToast("Chưa có Infographic nào để tải về!");
@@ -4375,8 +3896,13 @@ Trả về JSON thuần túy (không bọc markdown, không thừa ký tự) the
     function saveApiKey() {
       const val = document.getElementById('customApiKeyInput').value.trim();
       appState.customApiKey = val;
+      if (val) {
+        localStorage.setItem('documind_gemini_api_key', val);
+      } else {
+        localStorage.removeItem('documind_gemini_api_key');
+      }
       closeApiKeyModal();
-      showToast(val ? "Đã lưu khóa API Gemini riêng thành công!" : "Đang sử dụng API mặc định của hệ thống.");
+      showToast(val ? "Đã lưu khóa API Gemini riêng vào trình duyệt!" : "Đang sử dụng API mặc định.");
     }
 
     function showToast(msg) {
